@@ -1,25 +1,40 @@
-<?php
+<?php //main.php
 
 // Note: this is so that the Tropo server can execute the script
 header('content-type: text/plain');
 echo '<?php';
 ?>
 
-define("LANG_ENG", 1);
-define("LANG_SLO", 2);
-define("LANG_NONE", 0);
+class Lang
+{
+	const ENG = 1;
+	const SLO = 2;
+	const NOT_SET = -1;
+}
+
+class Station
+{
+	const NOT_SET = -1;
+	const STATION1 = 1;
+	const STATION2 = 2;
+	const STATION3 = 3;
+	const POST_VISIT = 4;
+}
 
 // Consts to configure
 class Config
 {
-	const SMS_URL = "http://api.tropo.com/1.0/sessions?action=create&token=<TOKEN>";
+	const SMS_URL = 
+		"http://api.tropo.com/1.0/sessions?action=create&token=<TOKEN>";
 	const ANSWER_WAIT = 3000;
 	const ERROR_MESSAGE = "http://url.to.mp3";
 	const AUDIO_BASE_URL = "http://url.to.mp3/audio";
+	const CALL_TRACK_URL = "http://horizab1.miniserver.com/~stuart/tracker.php";
 }
 
 // Globals
-$lang = LANG_NONE;
+$lang = Lang::NOT_SET;
+$station = Station::NOT_SET;
 
 // UK only
 function parseNumber($num)
@@ -50,7 +65,7 @@ function opt($opts, $choices, $handler)
 			   array("choices" => $choices, 
 			   		 "attempts" => 3, "timeout" => 10.0, 
 					 "mode" => "dtmf", "onChoice" => $handler, 
-					 "onBadChoice" => "errorMsg"
+					 "onBadChoice" => $handler
 				)
 		   );
 }
@@ -58,10 +73,11 @@ function opt($opts, $choices, $handler)
 function blockSay($num)
 {
 	global $lang;
+
 	$blockStr = "block" . $num;
 	switch ($lang)
 	{
-		case LANG_ENG: case LANG_SLO: { $blockStr .= ("-" . $lang); break; }
+		case Lang::ENG: case Lang::SLO: { $blockStr .= ("-" . $lang); break; }
 		default: { break; }
 	}
 
@@ -71,11 +87,11 @@ function blockSay($num)
 function blockAsk($num, $opts, $handler)
 {
 	global $lang;
-	//wait();
+
 	$blockStr = "block" . $num;
 	switch ($lang)
 	{
-		case LANG_ENG: case LANG_SLO: { $blockStr .= ("-" . $lang); break; }
+		case Lang::ENG: case Lang::SLO: { $blockStr .= ("-" . $lang); break; }
 		default: { break; }
 	}
 
@@ -85,13 +101,52 @@ function blockAsk($num, $opts, $handler)
 function langHandler($event)
 {
 	global $lang;
+
 	switch ($event->value)
 	{
-		case LANG_ENG: { $lang = LANG_ENG; break; }
-		case LANG_SLO: { $land = LANG_SLO; break; }
-		default: { block2(); break; }
+		case Lang::ENG: case Lang::SLO: { $lang = $event->value; break; }
+		default: { blockSay(2); break; }
 	}
 
+}
+
+function stationHandler1($event)
+{
+	global $station;
+
+	if ($event->value != $station)
+		blockAsk(6, "" . $station . "", "stationHandler2");
+}
+
+function stationHandler2($event)
+{
+	global $station;
+	if ($event->value != $station)
+		blockAsk(5, "2", "stationHandler1");
+}
+
+function trackCall($id)
+{
+	global $lang, $station;
+
+	$postData = array('id' => $id);
+	if ($lang != Lang::NOT_SET)
+		$postData['setlang'] = $lang;
+	if ($station != Station::NOT_SET)
+		$postData['setstation'] = $station;
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, Config::CALL_TRACK_URL);
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+	$response = curl_exec($ch);
+	curl_close($ch);
+
+	if ($response != "")
+	{
+		$response_ = explode(",", $response);
+		$lang = $response_[0];
+		$station = $respose_[1];
+	}
 }
 
 
@@ -118,10 +173,48 @@ else if (isset($token))
 
 answer();
 wait(Config::ANSWER_WAIT);
-blockSay(1);
-blockAsk(2, LANG_ENG . "," . LANG_SLO, "langHandler");
-block(5, $lang);
-block(6, $lang);
-hangup();
+
+trackCall($currentCall->callerID);
+
+switch ($station)
+{
+
+	case Station::STATION1:
+	{
+		blockSay(1);
+		blockAsk(2, Lang::ENG . "," . Lang::SLO, "langHandler");
+		blockSay(3);
+		blockSay(4);
+		trackCall($currentCall->callerID);
+		hangup();
+
+		break;
+	}
+
+	case Station::STATION2:
+	{
+		blockAsk(5, "2", "stationHandler1");
+		blockSay(8);
+		blockSay(9);
+		trackCall($currentCall->callerID);
+		hangup();
+		break;
+	}
+
+	case Station::STATION3:
+	{
+		break;
+	}
+
+	case Station::POST_VISIT:
+	{
+		break;
+	}
+
+	case Station::NOT_SET: default:
+	{
+		_log("Error occured determining station");
+		break;
+	}
 
 ?>
