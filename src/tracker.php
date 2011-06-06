@@ -3,7 +3,7 @@
 include("header.php");
 
 $user = "root";
-$password = "nakUjwecLi";
+$password = file_get_contents("/home/stuart/mysql-passwd.txt");
 $database = "spomenik";
 
 if (!isset($_POST['id']) || $_POST['id'] == "")
@@ -21,7 +21,7 @@ if (isset($_POST['station']) && $_POST['station'] != "")
 $response = "";
 
 // New user
-if (!mysql_connect(localhost, $user, $password))
+if (!mysql_connect("localhost", $user, $password))
 {
 	echo "Unable to connect to database: " . mysql_error();
 	exit;

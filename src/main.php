@@ -7,7 +7,7 @@ echo '<?php
 ';
 
 $header = file_get_contents("./header.php");
-$smsKey = file_get_contents("./tropo_key.txt");
+$smsKey = file_get_contents("/home/stuart/tropo_key.txt");
 if (!$header)
 {
 	echo "Error getting header ?>";
