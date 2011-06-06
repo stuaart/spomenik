@@ -24,7 +24,10 @@ class Station
 if (!isset($_POST['id']))
 	exit(0);
 
+// TODO: some security / guards
 $id = $_POST['id'];
+$lang = $_POST['lang'];
+$station = $_POST['station'];
 $response = "";
 
 // New user
@@ -57,12 +60,31 @@ if (mysql_num_rows($res) == 0)
 }
 else
 {
-	if (isset($_POST['setlang']))
+	$row = mysql_fetch_assoc($res);
+	if (isset($lang))
 	{
+		if (mysql_query("UPDATE user SET lang = '$lang' WHERE id = '$id'"))
+			$response = $lang;
+	}
+	else 
+		$response = $row['lang'];
+	if (isset($station))
+	{
+		if (mysql_query("UPDATE user SET station = '$station' 
+						 WHERE id = '$id'"))
+		{
+			if ($response != "")
+				$response .= ",";
+			$response .= $station;
+		}
+	}
+	else
+	{
+		if ($response != "")
+			$response .= ",";
+		$response .= $row['station'];
 	}
 
-	$row = mysql_fetch_assoc($res);
-	$response = $row['lang'] . "," . $row['station'];
 }
 
 mysql_close();
