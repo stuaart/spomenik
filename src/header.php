@@ -1,8 +1,8 @@
 <?
 class Lang
 {
-	const ENG = 1;
-	const SLO = 2;
+	const ENG = 2;
+	const SLO = 1;
 	const NOT_SET = -1;
 }
 

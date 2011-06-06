@@ -3,11 +3,14 @@
 include("header.php");
 
 $user = "root";
-$password = "";
+$password = "nakUjwecLi";
 $database = "spomenik";
 
 if (!isset($_POST['id']) || $_POST['id'] == "")
-	exit(0);
+{
+	echo "ID variable is not set, print_r = " . print_r($_POST);
+	exit;
+}
 
 // TODO: some security / guards
 $id = $_POST['id'];
@@ -41,12 +44,10 @@ if (mysql_num_rows($res) == 0)
 {
 	if (!mysql_num_rows(mysql_query("SHOW TABLES LIKE 'user'")))
 	{
-		mysql_query("CREATE TABLE user (id VARCHAR(20) NOT NULL, 
+		mysql_query("CREATE TABLE user (id VARCHAR(50) NOT NULL, 
 										station INT(2), lang INT(2))"
 		);
 	}
-	else 
-		exit(0);
 
 	mysql_query("INSERT INTO user VALUES('" . $id . "', " . Station::NOT_SET . 
 										 ", " . Lang::NOT_SET . ")");
