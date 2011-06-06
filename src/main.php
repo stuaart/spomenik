@@ -2,30 +2,31 @@
 
 // Note: this is so that the Tropo server can execute the script
 header('content-type: text/plain');
-echo '<?php';
+echo '<?php
+//
+';
+
+$header = file_get_contents("./header.php");
+$token = file_get_contents("./tropo_key.txt");
+if (!$header)
+{
+	echo "Error getting header ?>";
+	exit;
+}
+if (!$token)
+{
+	echo "Error getting key ?>";
+	exit;
+}
+echo $header;
+echo "\$token = $token";
 ?>
-
-class Lang
-{
-	const ENG = 1;
-	const SLO = 2;
-	const NOT_SET = -1;
-}
-
-class Station
-{
-	const NOT_SET = -1;
-	const STATION1 = 1;
-	const STATION2 = 2;
-	const STATION3 = 3;
-	const POST_VISIT = 4;
-}
 
 // Consts to configure
 class Config
 {
 	const SMS_URL = 
-		"http://api.tropo.com/1.0/sessions?action=create&token=<TOKEN>";
+		"http://api.tropo.com/1.0/sessions?action=create&token=$token";
 	const ANSWER_WAIT = 3000;
 	const ERROR_MESSAGE = "http://url.to.mp3";
 	const AUDIO_BASE_URL = "http://url.to.mp3/audio";
@@ -216,5 +217,7 @@ switch ($station)
 		_log("Error occured determining station");
 		break;
 	}
+
+}
 
 ?>

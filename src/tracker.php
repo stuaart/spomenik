@@ -1,33 +1,20 @@
 <?php // tracker.php
 
+include("header.php");
+
 $user = "root";
-$password = "r4nd0m";
+$password = "nakUjwecLi";
 $database = "spomenik";
 
-class Lang
-{
-	const ENG = 1;
-	const SLO = 2;
-	const NOT_SET = -1;
-}
-
-class Station
-{
-	const NOT_SET = -1;
-	const STATION1 = 1;
-	const STATION2 = 2;
-	const STATION3 = 3;
-	const POST_VISIT = 4;
-}
-
-
-if (!isset($_POST['id']))
+if (!isset($_POST['id']) || $_POST['id'] == "")
 	exit(0);
 
 // TODO: some security / guards
 $id = $_POST['id'];
-$lang = $_POST['lang'];
-$station = $_POST['station'];
+if (isset($_POST['lang']) && $_POST['lang'] != "")
+	$lang = $_POST['lang'];
+if (isset($_POST['station']) && $_POST['station'] != "")
+	$station = $_POST['station'];
 $response = "";
 
 // New user
@@ -41,6 +28,12 @@ if (!mysql_select_db($database))
 {
 	echo "Unable to select database: " . mysql_error();
 	exit;
+}
+
+if (!isset($id))
+{
+		echo "No ID provided";
+			exit;
 }
 
 $res = mysql_query("SELECT * FROM user WHERE id = '$id'");
