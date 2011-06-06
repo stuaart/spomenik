@@ -3,7 +3,7 @@
 include("header.php");
 
 $user = "root";
-$password = "nakUjwecLi";
+$password = "";
 $database = "spomenik";
 
 if (!isset($_POST['id']) || $_POST['id'] == "")
