@@ -6,11 +6,13 @@ $user = Config::MYSQL_USER;
 $password = file_get_contents("/home/stuart/mysql-passwd.txt");
 $database = Config::MYSQL_DB;
 
-if (!isset($_POST['id']) || $_POST['id'] == "")
+if (strlen($_POST['id']) == 0)
 {
 	echo "ID variable is not set, print_r = " . print_r($_POST);
 	exit;
 }
+
+// TODO: might have to do some clever phone number parsing things here...
 
 $id = cleanVar($_POST['id']);
 if (isset($_POST['lang']) && $_POST['lang'] != "")

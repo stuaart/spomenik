@@ -114,8 +114,9 @@ function blockAsk($num, $opts, $handler, $timeoutHandler, $langSet=true)
 	opt($file, $opts, $handler, $timeoutHandler);
 }
 
-function blockRec($id, $num, $langSet=true)
+function blockRec($num, $langSet=true)
 {
+	global $callID;
 	$file = getBlockFile($num, $langSet);
 	record($file, array(
 		   "beep" => true,
@@ -124,7 +125,7 @@ function blockRec($id, $num, $langSet=true)
 		   "silenceTimeout" => 5,
 		   "recordFormat" => "audio/mp3",
 		   "recordMethod" => "POST",
-		   "recordURI" => Config::RECORD_URL . "?id=$id")
+		   "recordURI" => Config::RECORD_URL . "?id=$callID")
 	);
 }
 
@@ -214,22 +215,23 @@ function stationHandler2_3($event)
 }
 function stationHandler2_4($event)
 {
-	global $station, $callID;
+	global $station;
 	$station = Station::STATION1;
-	trackCall($callID);
+	trackCall();
 	_log("stationhandler2_4(), fall out to main call with Station::STATION1");
 }
 
-function trackCall($id)
+function trackCall()
 {
-	global $lang, $station;
-	_log("trackCall(): globals... lang=$lang, station=$station");
+	global $lang, $station, $callID;
+	_log("trackCall(): globals... lang=$lang, station=$station, id=$callID");
 
-	$postData = array('id' => $id);
+	$postData = array();
+	$postData["id"] = "$callID";
 	if ($lang != Lang::NOT_SET)
-		$postData['lang'] = $lang;
+		$postData["lang"] = $lang;
 	if ($station != Station::NOT_SET)
-		$postData['station'] = $station;
+		$postData["station"] = $station;
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, Config::CALL_TRACK_URL);
 	curl_setopt($ch, CURLOPT_POST, 1);
@@ -260,15 +262,20 @@ answer();
 // SMS callback
 if (isset($number) && isset($type))
 {
-	_log("Triggered SMS callback, creating SMS for number=$number, type=$type");
-	call(parseNumber($number), array("network" => "SMS"));
-	if ($type == "sms1")
-		say(SMSPayload::MESSAGE1);
-	else if ($type == "sms2")
-		say(SMSPayload::MESSAGE2);
-	else
-		_log("Error selecting SMS type");
-
+	trackCall();
+	// Note: SMSes only work in POST_VISIT state
+	if ($station == Station::POST_VISIT)
+	{
+		_log("Triggered SMS callback, creating SMS for number=$number, 
+			  type=$type");
+		call(parseNumber($number), array("network" => "SMS"));
+		if ($type == "sms1")
+			say(SMSPayload::MESSAGE1);
+		else if ($type == "sms2")
+			say(SMSPayload::MESSAGE2);
+		else
+			_log("Error selecting SMS type");
+	}
 	exit;
 } 
 else if (isset($token))
@@ -281,7 +288,7 @@ else if (isset($token))
 _log("Wait for " . Config::ANSWER_WAIT);
 wait(Config::ANSWER_WAIT);
 
-trackCall($callID);
+trackCall();
 
 if ($station == Station::NOT_SET)
 {
@@ -309,7 +316,7 @@ switch ($station)
 		station1();
 		// Transition to next station
 		$station = Station::STATION2;
-		trackCall($callID);
+		trackCall();
 		hangup();
 
 		break;
@@ -325,7 +332,7 @@ switch ($station)
 		{
 			station1();
 			$station = Station::STATION2;
-			trackCall($callID);
+			trackCall();
 		}
 		else
 		{
@@ -334,7 +341,7 @@ switch ($station)
 			blockSay(15);
 		
 			$station = Station::POST_VISIT;
-			trackCall($callID);
+			trackCall();
 			sms("sms1");
 
 			blockSay(16);
@@ -354,13 +361,18 @@ switch ($station)
 	case Station::POST_VISIT: { exit; break; }
 }
 
-wait(Config::POST_VISIT_WAIT);
+if ($station == Station::POST_VISIT)
+{
+	wait(Config::POST_VISIT_WAIT);
 
-sms("sms2");
+	sms("sms2");
 
-_log("Resetting user to " . Station::STATION1);
-$station = Station::STATION1;
-trackCall($callID);
+	_log("Resetting user to " . Station::STATION1);
+	$station = Station::STATION1;
+	trackCall();
+}
+
+hangup();
 
 exit;
 
