@@ -2,9 +2,9 @@
 
 include("header.php");
 
-$user = "root";
+$user = Config::MYSQL_USER;
 $password = file_get_contents("/home/stuart/mysql-passwd.txt");
-$database = "spomenik";
+$database = Config::MYSQL_DB;
 
 if (!isset($_POST['id']) || $_POST['id'] == "")
 {
@@ -12,12 +12,11 @@ if (!isset($_POST['id']) || $_POST['id'] == "")
 	exit;
 }
 
-// TODO: some security / guards
-$id = $_POST['id'];
+$id = cleanVar($_POST['id']);
 if (isset($_POST['lang']) && $_POST['lang'] != "")
-	$lang = $_POST['lang'];
+	$lang = cleanVar($_POST['lang']);
 if (isset($_POST['station']) && $_POST['station'] != "")
-	$station = $_POST['station'];
+	$station = cleanVar($_POST['station']);
 $response = "";
 
 // New user
@@ -45,12 +44,13 @@ if (mysql_num_rows($res) == 0)
 	if (!mysql_num_rows(mysql_query("SHOW TABLES LIKE 'user'")))
 	{
 		mysql_query("CREATE TABLE user (id VARCHAR(50) NOT NULL, 
-										station INT(2), lang INT(2))"
+										station INT(2), lang INT(2), 
+										recording VARCHAR(255))"
 		);
 	}
 
 	mysql_query("INSERT INTO user VALUES('" . $id . "', " . Station::NOT_SET . 
-										 ", " . Lang::NOT_SET . ")");
+										 ", " . Lang::NOT_SET . ", NULL)");
 }
 else
 {
