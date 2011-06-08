@@ -78,7 +78,7 @@ function sms($type)
 	global $callID;
 	$smsURL = SMS_URL . "&type=" . $type . "&number=" . $callID;
 	_log("Setting SMS callback, URL being called is $smsURL");
-	logger("sms=$type");
+	logger("sms,type=$type,number=$number");
 	$ch = curl_init($smsURL);
 	curl_exec($ch);
 	curl_close($ch);
@@ -106,7 +106,7 @@ function opt($opts, $choices, $handler, $timeoutHandler)
 function hangupHandler($event)
 {
 	_log("User hungup");
-	logger("hangupHandler");
+	logger("hangupHandler,event=" . $event->value);
 	// Exit to preserve state
 	exit;
 }
@@ -139,9 +139,9 @@ function logActive()
 {
 	global $currentCall;
 	if (!$currentCall->isActive())
-		logger("inactive");
+		logger("logActive,event=inactive");
 	else 
-		logger("active");
+		logger("logActive,event=active");
 }
 
 function blockSay($num, $langSet=true)
@@ -149,7 +149,7 @@ function blockSay($num, $langSet=true)
 	global $currentCall;
 	$file = getBlockFile($num, $langSet);
 	_log("Saying from file $file");
-	logger("saying=$num,file=$file");
+	logger("blockSay,num=$num,file=$file");
 	logActive();
 	say($file);
 	logActive();
@@ -159,7 +159,7 @@ function blockAsk($num, $opts, $handler, $timeoutHandler, $langSet=true)
 {
 	$file = getBlockFile($num, $langSet);
 	_log("Asking from file $file");
-	logger("asking=$num,file=$file");
+	logger("blockAsk,num=$num,file=$file");
 	opt($file, $opts, $handler, $timeoutHandler);
 }
 
@@ -167,7 +167,7 @@ function blockRec($num, $langSet=true)
 {
 	global $callID;
 	$file = getBlockFile($num, $langSet);
-	logger("recording=$num,file=$file");
+	logger("blockRec,num=$num,file=$file");
 	record($file, array(
 		   "beep" => true,
 		   "timeout" => Config::INPUT_TIMEOUT,
@@ -182,6 +182,7 @@ function blockRec($num, $langSet=true)
 function langHandler($event)
 {
 	global $lang;
+	logger("langHandler,event=" . $event->value);
 	switch ($event->value)
 	{
 		case Lang::ENG: case Lang::SLO: { $lang = $event->value; break; }
@@ -193,7 +194,7 @@ function langHandler($event)
 // Handlers for Station::STATION1
 function stationHandler1Timeout($event)
 {
-	logger("stationHandler1Timeout");
+	logger("stationHandler1Timeout,event=" . $event->value);
 	blockSay(4);
 	_log("Looping back to blockAsk(2...)");
 	blockAsk(2, "" . Station::STATION1 . "," . Station::STATION2 . "",
@@ -202,6 +203,7 @@ function stationHandler1Timeout($event)
 function stationHandler1_1($event)
 {
 	global $station;
+	logger("stationHandler1_1,event=" . $event->value);
 	_log("stationHandler1_1() value=" . $event->value . " station=$station");
 	if ($event->value != $station)
 	{
@@ -212,6 +214,7 @@ function stationHandler1_1($event)
 function stationHandler1_2($event)
 {
 	global $station;
+	logger("stationHandler1_2,event=" . $event->value);
 	_log("stationHandler1_2() value=" . $event->value . " station=$station");
 	if ($event->value != $station)
 	{
@@ -224,7 +227,7 @@ function stationHandler1_2($event)
 // Handlers for Station::STATION2
 function stationHandler2Timeout($event)
 {
-	logger("stationHandler2Timeout");
+	logger("stationHandler2Timeout,event=" . $event->value);
 	blockSay(9);
 	_log("Looping back to blockAsk(7...)");
     blockAsk(7, "" . Station::STATION1 . "," . Station::STATION2 . "",
@@ -233,6 +236,7 @@ function stationHandler2Timeout($event)
 function stationHandler2_1($event)
 {
 	global $station;
+	logger("stationHandler2_1,event=" . $event->value);
 	_log("stationHandler2_1() value=" . $event->value . " station=$station");
 	if ($event->value != $station)
 		blockAsk(8, "" . Station::STATION1 . "," . Station::STATION2 . "", 
@@ -241,6 +245,7 @@ function stationHandler2_1($event)
 function stationHandler2_2($event)
 {
 	global $station;
+	logger("stationHandler2_2,event=" . $event->value);
 	_log("stationHandler2_2() value=" . $event->value . " station=$station");
 
 	if ($event->value == Station::STATION1)
@@ -260,6 +265,7 @@ function stationHandler2_2($event)
 }
 function stationHandler2_3($event)
 {
+	logger("stationHandler2_3,event=" . $event->value);
 	if ($event->value == Station::STATION1)
 	{
 		blockSay(12);
@@ -276,6 +282,7 @@ function stationHandler2_3($event)
 function stationHandler2_4($event)
 {
 	global $station;
+	logger("stationHandler2_4,event=" . $event->value);
 	$station = Station::STATION1;
 	trackCall();
 	_log("stationhandler2_4(), fall out to main call with Station::STATION1");
@@ -376,8 +383,8 @@ trackCall();
 if ($station == Station::NOT_SET)
 {
 	_log("Initialising station to STATION1");
-	logger("init");
 	$station = Station::STATION1;
+	logger("init");
 }
 else
 	_log("Call tracked, station=$station, lang=$lang");
