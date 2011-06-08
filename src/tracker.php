@@ -2,10 +2,10 @@
 
 include("header.php");
 
-$user = Config::MYSQL_USER;
-$host = Config::MYSQL_HOST;
-$password = file_get_contents(Config::MYSQL_PASSWD_FILE);
-$database = Config::MYSQL_DB;
+$user = MySQL::USER;
+$host = MySQL::HOST;
+$password = file_get_contents(MySQL::PASSWD_FILE);
+$database = MySQL::DBNAME;
 
 if (strlen($_POST['id']) == 0)
 {

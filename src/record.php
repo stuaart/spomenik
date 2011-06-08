@@ -2,9 +2,9 @@
 
 include "header.php";
 
-$user = Config::MYSQL_USER;
-$password = file_get_contents("/home/stuart/mysql-passwd.txt");
-$database = Config::MYSQL_DB;
+$user = MySQL::USER;
+$password = file_get_contents(MySQL::PASSWD_FILE);
+$database = MySQL::DBNAME;
 
 if (isset($_GET['id']))
 	$id = cleanVar($_GET['id']);
@@ -31,10 +31,10 @@ if (!isset($_FILES['filename']) || !isset($id))
 }
 
 
-if (file_exists(Config::UPLOAD_DIR) && is_dir(Config::UPLOAD_DIR))
+if (file_exists(Sys::UPLOAD_DIR) && is_dir(Sys::UPLOAD_DIR))
 {
 	$ext = strrchr(basename($_FILES['filename']['name']), ".");
-	$file = Config::UPLOAD_DIR . uniqid() . $ext;
+	$file = Sys::UPLOAD_DIR . uniqid() . $ext;
 
 	echo '<pre>';
 	if (is_uploaded_file($_FILES['filename']['tmp_name']))
