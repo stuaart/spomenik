@@ -3,7 +3,8 @@
 include("header.php");
 
 $user = Config::MYSQL_USER;
-$password = file_get_contents("/home/stuart/mysql-passwd.txt");
+$host = Config::MYSQL_HOST;
+$password = file_get_contents(Config::MYSQL_PASSWD_FILE);
 $database = Config::MYSQL_DB;
 
 if (strlen($_POST['id']) == 0)
@@ -21,8 +22,8 @@ if (isset($_POST['station']) && $_POST['station'] != "")
 	$station = cleanVar($_POST['station']);
 $response = "";
 
-// New user
-if (!mysql_connect("localhost", $user, $password))
+
+if (!mysql_connect($host, $user, $password))
 {
 	echo "Unable to connect to database: " . mysql_error();
 	exit;
@@ -32,12 +33,6 @@ if (!mysql_select_db($database))
 {
 	echo "Unable to select database: " . mysql_error();
 	exit;
-}
-
-if (!isset($id))
-{
-		echo "No ID provided";
-			exit;
 }
 
 $res = mysql_query("SELECT * FROM user WHERE id = '$id'");

@@ -16,9 +16,9 @@ class Station
 
 class Config
 {
-	const ANSWER_WAIT = 3000;
-	const POST_VISIT_WAIT = 10000;
-	const MAX_RECORD_TIME = 60;
+	const ANSWER_WAIT = 3000; // 3 seconds
+	const POST_VISIT_WAIT = 10000; // 10 seconds
+	const MAX_RECORD_TIME = 60; // 60 seconds
 	const ERROR_MESSAGE = 
 		"http://horiz1ab1.miniserver.com/~stuart/spomenik/audio/error.mp3";
 	const AUDIO_BASE_URL = 
@@ -29,9 +29,13 @@ class Config
 		"http://horizab1.miniserver.com/~stuart/spomenik/tracker.php";
 	const RECORD_URL = 
 		"http://horizab1.miniserver.com/~stuart/spomenik/record.php";
+	const SYSTEM_LOG_URL = 
+		"http://horizab1.miniserver.com/~stuart/spomenik/logger.php";
 
 	const MYSQL_USER = "root";
+	const MYSQL_HOST = "localhost";
 	const MYSQL_DB = "spomenik";
+	const MYSQL_PASSWD_FILE = "/home/stuart/mysql-passwd.txt";
 	const UPLOAD_DIR = "/home/stuart/public_html/spomenik/uploads/";
 }
 

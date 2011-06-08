@@ -41,11 +41,28 @@ function parseNumber($num)
 	return "+44" . $out; 
 }
 
+function logger($entry)
+{
+	global $callID;
+
+	$postData = array();
+	$postData["id"] = "$callID";
+	$postData["entry"] = $entry;
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, Config::SYSTEM_LOG_URL);
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_exec($ch);
+}
+
 function sms($type)
 {
 	global $callID;
-	_log("Setting SMS callback with type=$type, on number=" . $callID);
-	$ch = curl_init(SMS_URL . "&type=" . $type . "&number=" . $callID);
+	$smsURL = SMS_URL . "&type=" . $type . "&number=" . $callID;
+	_log("Setting SMS callback, URL being called is $smsURL");
+	logger("sms=$type");
+	$ch = curl_init($smsURL);
 	curl_exec($ch);
 	curl_close($ch);
 }
@@ -69,9 +86,11 @@ function opt($opts, $choices, $handler, $timeoutHandler)
 		   );
 }
 
-function hangupHandler()
+function hangupHandler($event)
 {
 	_log("User hungup");
+	logger("hangupHandler");
+	// Exit to preserve state
 	exit;
 }
 
@@ -102,8 +121,14 @@ function getBlockFile($num, $langSet)
 
 function blockSay($num, $langSet=true)
 {
+	global $currentCall;
 	$file = getBlockFile($num, $langSet);
 	_log("Saying from file $file");
+	logger("saying=$num,file=$file");
+	if (!$currentCall->isActive)
+		logger("inactive");
+	else 
+		logger("active");
 	say($file);
 }
 
@@ -111,6 +136,7 @@ function blockAsk($num, $opts, $handler, $timeoutHandler, $langSet=true)
 {
 	$file = getBlockFile($num, $langSet);
 	_log("Asking from file $file");
+	logger("asking=$num,file=$file");
 	opt($file, $opts, $handler, $timeoutHandler);
 }
 
@@ -118,6 +144,7 @@ function blockRec($num, $langSet=true)
 {
 	global $callID;
 	$file = getBlockFile($num, $langSet);
+	logger("recording=$num,file=$file");
 	record($file, array(
 		   "beep" => true,
 		   "timeout" => 10,
@@ -132,13 +159,17 @@ function blockRec($num, $langSet=true)
 function langHandler($event)
 {
 	global $lang;
-
 	switch ($event->value)
 	{
 		case Lang::ENG: case Lang::SLO: { $lang = $event->value; break; }
 		default: { blockSay(2); break; }
 	}
 
+}
+
+function timeoutHandler($event)
+{
+	// TODO
 }
 
 // Handlers for Station::STATION1
@@ -151,7 +182,10 @@ function stationHandler1_1($event)
 	global $station;
 	_log("stationHandler1_1() value=" . $event->value . " station=$station");
 	if ($event->value != $station)
-		blockAsk(3, "" . Station::STATION1 . "," . Station::STATION2 . "", "stationHandler1_2", "stationHandler1Timeout");
+	{
+		blockAsk(3, "" . Station::STATION1 . "," . Station::STATION2 . "", 
+				 "stationHandler1_2", "stationHandler1Timeout");
+	}
 }
 function stationHandler1_2($event)
 {
@@ -239,7 +273,11 @@ function trackCall()
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	$response = curl_exec($ch);
 
-	_log("Posted request array [" . implode(",", $postData) . "] to URL " 
+	$arrayStr = "[";
+	foreach (array_keys($postData) as $key)
+		$arrayStr .= ("" . $key . " => " . $postData[$key] . ", ");
+	$arrayStr .= "]";
+	_log("Posted request array " . $arrayStr . " to URL " 
 		 . Config::CALL_TRACK_URL);
 	_log("Response was \"" . $response . "\"");
 
@@ -257,6 +295,7 @@ function trackCall()
 
 
 _log("Answering call from \"" . $callID . "\"");
+logger("answer");
 answer();
 
 // SMS callback
@@ -293,10 +332,13 @@ trackCall();
 if ($station == Station::NOT_SET)
 {
 	_log("Initialising station to STATION1");
+	logger("init");
 	$station = Station::STATION1;
 }
 else
 	_log("Call tracked, station=$station, lang=$lang");
+
+logger("station=$station");
 
 function station1()
 {
@@ -342,10 +384,10 @@ switch ($station)
 		
 			$station = Station::POST_VISIT;
 			trackCall();
-			sms("sms1");
 
 			blockSay(16);
 			blockRec($callID, 17);
+			sms("sms1");
 		}
 		hangup();
 		break;
@@ -363,6 +405,8 @@ switch ($station)
 
 if ($station == Station::POST_VISIT)
 {
+	logger("station=" . Station::POST_VISIT);
+	_log("Waiting for " . Config::POST_VISIT_WAIT . " before sms2");
 	wait(Config::POST_VISIT_WAIT);
 
 	sms("sms2");
