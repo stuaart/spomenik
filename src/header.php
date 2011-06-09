@@ -39,6 +39,8 @@ class Sys
 		"http://horizab1.miniserver.com/~stuart/spomenik/record.php";
 	const SYSTEM_LOG_URL = 
 		"http://horizab1.miniserver.com/~stuart/spomenik/logger.php";
+	const UPLOAD_URL =
+		"http://horizab1.miniserver.com/~stuart/spomenik/uploads/";
 	
 	const TROPO_KEY_FILE = "/home/stuart/tropo_key.txt";
 	const UPLOAD_DIR = "/home/stuart/public_html/spomenik/uploads/";
