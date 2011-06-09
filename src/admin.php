@@ -10,16 +10,36 @@
 </form>
 </p>
 <p>
-<form action="record.php" enctype="multipart/form-data" method="POST">
-	ID: <input type="text" name="id">
+<form action="upload.php" enctype="multipart/form-data" method="POST">
+Block: <select name="block">
+<?php
+
+include_once("header.php");
+
+if ($fh = opendir(Sys::AUDIO_DIR))
+{
+	$list = array();
+	while (($file = readdir($fh)) != false)
+	{
+		if ($file != "." && $file != "..")
+			$list[] = $file;
+	}
+	closedir($fh);
+
+	sort($list);
+	foreach ($list as $file)
+		echo "<option value='$file'>$file</option>";
+}
+
+?>
+	</select>
 	File: <input type="file" name="filename">
-	<input type="hidden" name="MAX_FILE_SIZE" value="10000000" />
 	<input type="submit" value="Upload">
 </form>
 </p>
 <?php
 
-include("header.php");
+include_once("header.php");
 
 $user = MySQL::USER;
 $host = MySQL::HOST;

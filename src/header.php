@@ -16,13 +16,13 @@ class Station
 
 class Config
 {
-	const SMS1 = "Message number 1";
-	const SMS2 = "Message number 2";
-	const ANSWER_WAIT = 3000; // 3 seconds
-	const POST_VISIT_WAIT = 10000; // 10 seconds
-	const MAX_RECORD_TIME = 60; // 60 seconds
-	const RECORD_SILENCE_TIMEOUT = 5;
-	const INPUT_TIMEOUT = 10;
+	public static $SMS1 = "Message number 1";
+	public static $SMS2 = "Message number 2";
+	public static $ANSWER_WAIT = 3000; // 3 seconds
+	public static $POST_VISIT_WAIT = 10000; // 10 seconds
+	public static $MAX_RECORD_TIME = 60; // 60 seconds
+	public static $RECORD_SILENCE_TIMEOUT = 5;
+	public static $INPUT_TIMEOUT = 10;
 }
 
 class Sys
@@ -44,6 +44,7 @@ class Sys
 	
 	const TROPO_KEY_FILE = "/home/stuart/tropo_key.txt";
 	const UPLOAD_DIR = "/home/stuart/public_html/spomenik/uploads/";
+	const AUDIO_DIR = "/home/stuart/public_html/spomenik/audio/";
 }
 
 class Routing

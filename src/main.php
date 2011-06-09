@@ -95,7 +95,7 @@ function opt($opts, $choices, $handler, $timeoutHandler)
 	$res = ask($opts,
 			   array("choices" => $choices, 
 					 "mode" => "dtmf", "onChoice" => "$handler", 
-					 "timeout" => Config::INPUT_TIMEOUT,
+					 "timeout" => Config::$INPUT_TIMEOUT,
 					 "onTimeout" => "$timeoutHandler",
 					 "onBadChoice" => "$handler",
 					 "onHangup" => "hangupHandler"
@@ -170,9 +170,9 @@ function blockRec($num, $langSet=true)
 	logger("blockRec,num=$num,file=$file");
 	record($file, array(
 		   "beep" => true,
-		   "timeout" => Config::INPUT_TIMEOUT,
-		   "maxTime" => Config::MAX_RECORD_TIME,
-		   "silenceTimeout" => Config::RECORD_SILENCE_TIMEOUT,
+		   "timeout" => Config::$INPUT_TIMEOUT,
+		   "maxTime" => Config::$MAX_RECORD_TIME,
+		   "silenceTimeout" => Config::$RECORD_SILENCE_TIMEOUT,
 		   "recordFormat" => "audio/mp3",
 		   "recordMethod" => "POST",
 		   "recordURI" => Sys::RECORD_URL . "?id=$callID")
@@ -350,10 +350,10 @@ else
 				  type=$type");
 			call(parseNumber($number), array("network" => "SMS"));
 			if ($type == "sms1")
-				say(Config::SMS1);
+				say(Config::$SMS1);
 			else if ($type == "sms2")
 			{
-				say(Config::SMS2);
+				say(Config::$SMS2);
 				_log("Resetting user to " . Station::STATION1);
 				$station = Station::STATION1;
 				trackCall();
@@ -375,8 +375,8 @@ if (isset($token))
 }
 
 
-_log("Wait for " . Config::ANSWER_WAIT);
-wait(Config::ANSWER_WAIT);
+_log("Wait for " . Config::$ANSWER_WAIT);
+wait(Config::$ANSWER_WAIT);
 
 trackCall();
 
@@ -457,8 +457,8 @@ switch ($station)
 if ($station == Station::POST_VISIT)
 {
 	logger("station=" . Station::POST_VISIT);
-	_log("Waiting for " . Config::POST_VISIT_WAIT . " before sms2");
-	wait(Config::POST_VISIT_WAIT);
+	_log("Waiting for " . Config::$POST_VISIT_WAIT . " before sms2");
+	wait(Config::$POST_VISIT_WAIT);
 
 	sms("sms2");
 }
