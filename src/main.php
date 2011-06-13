@@ -536,26 +536,26 @@ switch ($station)
 	case Station::NOT_SET: default:
 	{
 		_log("Error occured determining station");
-		hangup();
 		break;
 	}
 
-	case Station::POST_VISIT: { hangup(); break; }
+	case Station::POST_VISIT: { break; }
 }
 
 
 if ($station == Station::POST_VISIT)
 {
 	sms("sms1");
-	logger("station=" . Station::POST_VISIT);
-	_log("Waiting for " . Config::$POST_VISIT_WAIT . " seconds before sms2");
-	wait(Config::$POST_VISIT_WAIT * 1000);
+//	logger("station=" . Station::POST_VISIT);
+//	_log("Waiting for " . Config::$POST_VISIT_WAIT . " seconds before sms2");
+//	wait(Config::$POST_VISIT_WAIT * 1000);
 
-	sms("sms2");
+//	sms("sms2");
 }
-
-hangup();
-
-exit;
+else
+{
+	hangup();
+	exit;
+}
 
 ?>
