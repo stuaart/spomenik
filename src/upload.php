@@ -1,6 +1,7 @@
-<?php
+<?php // upload.php
 
-include "header.php";
+include_once("header.php");
+include_once("header_shared.php");
 
 if (!isset($_FILES['filename']))
 {
@@ -8,7 +9,15 @@ if (!isset($_FILES['filename']))
 	exit;
 }
 
-$file = cleanVar($_POST['block']);
+if (!mysql_connect($host, $user, $password))
+{
+	echo "Unable to connect to database: " . mysql_error();
+	exit;
+}
+
+$file = mysql_real_escape_string($_POST['block']);
+
+mysql_close();
 
 echo "<pre>";
 if (file_exists(Sys::AUDIO_DIR) && is_dir(Sys::AUDIO_DIR))

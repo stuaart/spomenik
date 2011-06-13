@@ -1,7 +1,39 @@
 <html>
 <head><title>Spomenik admin</title></head>
 <body>
+
 <p>
+<h3>Set configuration</h3>
+<form action="config.php" method="POST">
+<?php
+
+include_once("header_shared.php");
+include_once("header.php");
+
+echo readConfig();
+
+echo "First text message payload:\n
+	<input type='text' name='sms1' value='" . Config::$SMS1 . "'><br/>\n
+Second text message payload:\n
+	<input type='text' name='sms2' value='" . Config::$SMS2 . "'><br/>\n
+Amount of time to wait before playing the first block of audio after answering the phonecall:\n
+	<input type='text' name='answer_wait' value='" . Config::$ANSWER_WAIT . "'> seconds<br/>\n
+Gap between the end of the experience and receiving the second text message:\n
+	<input type='text' name='post_visit_wait' value='" . Config::$POST_VISIT_WAIT . "'> seconds<br/>\n
+Maximum amount of time someone can record a response for at the end of the experience:\n
+	<input type='text' name='max_record_time' value='" . Config::$MAX_RECORD_TIME . "'> seconds<br/>\n
+Length of the silence during the user response recording that signals a timeout:
+	<input type='text' name='record_silence_timeout' value='" . Config::$RECORD_SILENCE_TIMEOUT . "'> seconds<br/>\n
+Amount of time within which someone must press 1, 2 or any other option button before a timeout message kicks in:\n
+	<input type='text' name='input_timeout' value='" . Config::$INPUT_TIMEOUT . "'> seconds<br/>";
+?>
+
+	<input type="submit" value="Submit">
+</form>
+</p>
+
+<p>
+<h3>Set user state</h3>
 <form action="tracker.php" method="POST">
 	ID: <input type="text" name="id">
 	Lang: <input type="text" name="lang">
@@ -10,11 +42,13 @@
 </form>
 </p>
 <p>
+<h3>Upload audio block files</h3>
 <form action="upload.php" enctype="multipart/form-data" method="POST">
-Block: <select name="block">
+<select name="block">
 <?php
 
 include_once("header.php");
+include_once("header_shared.php");
 
 if ($fh = opendir(Sys::AUDIO_DIR))
 {
@@ -40,6 +74,7 @@ if ($fh = opendir(Sys::AUDIO_DIR))
 <?php
 
 include_once("header.php");
+include_once("header_shared.php");
 
 $user = MySQL::USER;
 $host = MySQL::HOST;
@@ -58,7 +93,7 @@ if (!mysql_select_db($database))
 	exit;
 }
 
-echo "<p>User list:</p><pre>";
+echo "<p><h3>User list</h3><pre>";
 
 $res = mysql_query("SELECT * FROM user");
 while ($row = mysql_fetch_assoc($res))
@@ -87,7 +122,7 @@ while ($row = mysql_fetch_assoc($res))
 		 . "'>$recording</a>\n";
 }
 
-echo "</pre>";
+echo "</pre></p>";
 
 mysql_close();
 ?>

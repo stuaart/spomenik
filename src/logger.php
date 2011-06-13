@@ -13,8 +13,6 @@ if (strlen($_POST['id']) == 0)
 	exit;
 }
 
-$id = cleanVar($_POST['id']);
-$entry = cleanVar($_POST['entry']);
 
 
 if (!mysql_connect($host, $user, $password))
@@ -28,6 +26,9 @@ if (!mysql_select_db($database))
 	echo "Unable to select database: " . mysql_error();
 	exit;
 }
+
+$id = mysql_real_escape_string($_POST['id']);
+$entry = mysql_real_escape_string($_POST['entry']);
 
 if (!mysql_num_rows(mysql_query("SHOW TABLES LIKE 'log'")))
 {

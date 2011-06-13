@@ -1,15 +1,12 @@
-<?php
+<?php // header.php
 
-include "header.php";
+include_once("header.php");
+include_once("header_shared.php");
 
 $user = MySQL::USER;
 $password = file_get_contents(MySQL::PASSWD_FILE);
 $database = MySQL::DBNAME;
 
-if (isset($_GET['id']))
-	$id = cleanVar($_GET['id']);
-else if (isset($_POST['id']))
-	$id = cleanVar($_POST['id']);
 
 
 if (!mysql_connect("localhost", $user, $password))
@@ -30,6 +27,10 @@ if (!isset($_FILES['filename']) || !isset($id))
 	exit;
 }
 
+if (isset($_GET['id']))
+	$id = mysql_real_escape_string($_GET['id']);
+else if (isset($_POST['id']))
+	$id = mysql_real_escape_string($_POST['id']);
 
 if (file_exists(Sys::UPLOAD_DIR) && is_dir(Sys::UPLOAD_DIR))
 {

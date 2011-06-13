@@ -5,9 +5,10 @@ header('content-type: text/plain');
 echo '<?php
 //
 ';
-include("header.php");
+include_once("header.php");
+include_once("header_shared.php");
 
-$header = file_get_contents("./header.php");
+$header = file_get_contents("./header_shared.php");
 $smsKey = file_get_contents(Sys::TROPO_KEY_FILE);
 if (!$header)
 {
@@ -19,10 +20,21 @@ if (!$smsKey)
 	echo "Error getting key ?>";
 	exit;
 }
-$cleanHeader = str_replace(array("<?", "?>", "<?php"), "", $header);
+$cleanHeader = str_replace(array("<?php", "?>", "<?"), "", $header);
 echo $cleanHeader;
 
-echo "global \$smsKey; \$smsKey = \"$smsKey\";";
+echo "global \$smsKey;\n \$smsKey = \"$smsKey\";\n";
+
+readConfig();
+echo "Config::\$SMS1 = \"" . Config::$SMS1 . "\";\n";
+echo "Config::\$SMS2 = \"" . Config::$SMS2 . "\";\n";
+echo "Config::\$ANSWER_WAIT = " . Config::$ANSWER_WAIT . ";\n";
+echo "Config::\$POST_VISIT_WAIT = " . Config::$POST_VISIT_WAIT . ";\n";
+echo "Config::\$MAX_RECORD_TIME = " . Config::$MAX_RECORD_TIME . ";\n";
+echo "Config::\$RECORD_SILENCE_TIMEOUT = " . 
+		Config::$RECORD_SILENCE_TIMEOUT . ";\n";
+echo "Config::\$INPUT_TIMEOUT = " . Config::$INPUT_TIMEOUT . ";\n";
+
 ?>
 
 
@@ -239,8 +251,10 @@ function stationHandler2_1($event)
 	logger("stationHandler2_1,event=" . $event->value);
 	_log("stationHandler2_1() value=" . $event->value . " station=$station");
 	if ($event->value != $station)
+	{
 		blockAsk(8, "" . Station::STATION1 . "," . Station::STATION2 . "", 
 				 "stationHandler2_2", "stationHandler2Timeout");
+	}
 }
 function stationHandler2_2($event)
 {
@@ -250,7 +264,8 @@ function stationHandler2_2($event)
 
 	if ($event->value == Station::STATION1)
 	{
-		blockAsk(10, "" . Station::STATION1 . "," . Station::STATION2 . "", 
+		blockSay(10);
+		blockAsk(11, "" . Station::STATION1 . "," . Station::STATION2 . "", 
 				 "stationHandler2_3", "stationHandler2Timeout");
 	}
 	else if ($event->value != Station::STATION2)
@@ -265,42 +280,88 @@ function stationHandler2_2($event)
 }
 function stationHandler2_3($event)
 {
-	logger("stationHandler2_3,event=" . $event->value);
-	if ($event->value == Station::STATION1)
-	{
-		blockSay(12);
-		blockAsk(13, "" . Station::STATION1 . "," . Station::STATION2 . "", 
-				 "stationHandler2_4", "stationHandler2Timeout");
-	}
-	else if ($event->value != Station::STATION2)
-	{
-		blockAsk(10, "" . Station::STATION1 . "," . Station::STATION2 . "", 
-				 "stationHandler2_3", "stationHandler2Timeout");
-	}
-	_log("stationHandler2_3(), back to main call, i.e., station 2");
-}
-function stationHandler2_4($event)
-{
 	global $station;
-	logger("stationHandler2_4,event=" . $event->value);
+	logger("stationHandler2_3,event=" . $event->value);
 	$station = Station::STATION1;
 	trackCall();
-	_log("stationhandler2_4(), fall out to main call with Station::STATION1");
+	_log("stationhandler2_3(), fall out to main call with Station::STATION1");
 }
+
+// Handlers for Station::STATION2_PART3
+function stationHandler2P3Timeout($event)
+{
+	logger("stationHandler2P3Timeout,event=" . $event->value);
+	blockSay(15);
+	_log("Looping back to blockAsk(13...)");
+    blockAsk(13, "" . Station::STATION2_PART3 . "",
+             "stationHandler2P3_1", "stationHandler2P3Timeout");
+}
+function stationHandler2P3_1($event)
+{
+	global $station;
+	logger("stationHandler2P3_1,event=" . $event->value);
+	_log("stationHandler2P3_1() value=" . $event->value . " station=$station");
+	$station = Station::STATION2_PART3;
+	if ($event->value != $station)
+	{
+		blockAsk(14, "" . Station::STATION2 . "," 
+						. Station::STATION2_PART3 . "", 
+				 "stationHandler2P3_2", "stationHandler2P3Timeout");
+	}
+}
+function stationHandler2P3_2($event)
+{
+	global $station;
+	logger("stationHandler2P3_2,event=" . $event->value);
+	_log("stationHandler2P3_2() value=" . $event->value . " station=$station");
+
+	if ($event->value == Station::STATION2)
+	{
+		blockSay(16);
+		blockAsk(17, "" . Station::STATION2 . "", 
+				 "stationHandler2P3_3", "stationHandler2P3Timeout");
+	}
+	else if ($event->value != Station::STATION2_PART3)
+	{
+		_log("Looping back to blockAsk(13...)");
+		blockAsk(13, "" . Station::STATION1 . "," . Station::STATION2 . "", 
+				 "stationHandler2P3_1", "stationHandler2P3Timeout");
+	}
+	
+	// Else continue along back to main call
+	_log("stationHandler2P3_2(), back to main call, i.e., station 2");
+}
+function stationHandler2P3_3($event)
+{
+	global $station;
+	logger("stationHandler2P3_3,event=" . $event->value);
+	$station = Station::STATION2;
+	trackCall();
+	_log("stationhandler2P3_3(), fall out to main call with Station::STATION2");
+}
+
 
 function trackCall()
 {
 	global $lang, $station, $callID;
 	_log("trackCall(): globals... lang=$lang, station=$station, id=$callID");
 
+	$url = Sys::CALL_TRACK_URL . "?callID=$callID"; // Note POST and GET vars
+
 	$postData = array();
-	$postData["id"] = "$callID";
+	$postData["callID"] = "$callID";
 	if ($lang != Lang::NOT_SET)
+	{
 		$postData["lang"] = $lang;
+		$url .= "&lang=$lang";
+	}
 	if ($station != Station::NOT_SET)
+	{
 		$postData["station"] = $station;
+		$url .= "&station=$station";
+	}
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, Sys::CALL_TRACK_URL);
+	curl_setopt($ch, CURLOPT_URL, $url);
 	curl_setopt($ch, CURLOPT_POST, 1);
 	curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -310,8 +371,7 @@ function trackCall()
 	foreach (array_keys($postData) as $key)
 		$arrayStr .= ("" . $key . " => " . $postData[$key] . ", ");
 	$arrayStr .= "]";
-	_log("Posted request array " . $arrayStr . " to URL " 
-		 . Sys::CALL_TRACK_URL);
+	_log("Posted request array $arrayStr to URL $url");
 	_log("Response was \"" . $response . "\"");
 
 	if ($response != "")
@@ -375,8 +435,8 @@ if (isset($token))
 }
 
 
-_log("Wait for " . Config::$ANSWER_WAIT);
-wait(Config::$ANSWER_WAIT);
+_log("Wait for " . Config::$ANSWER_WAIT . " seconds");
+wait(Config::$ANSWER_WAIT * 1000);
 
 trackCall();
 
@@ -393,13 +453,19 @@ logger("station=$station");
 
 function station1()
 {
-	global $station;
 	blockSay(1);
 	//blockAsk(2, Lang::ENG . "," . Lang::SLO, "langHandler", false);
 	blockAsk(2, "" . Station::STATION1 . "," . Station::STATION2 . "", 
 			 "stationHandler1_1", "stationHandler1Timeout");
 	blockSay(5);
 	blockSay(6);
+}
+
+function station2p2()
+{
+	blockSay(12);
+	blockAsk(13, "" . Station::STATION2_PART3 . "", 
+		 	 "stationHandler2P3_1", "stationHandler2P3Timeout");
 }
 
 switch ($station)
@@ -429,15 +495,24 @@ switch ($station)
 		}
 		else
 		{
-			blockSay(11);
-			blockSay(14);
-			blockSay(15);
-		
+			station2p2();
+			while ($station != Station::STATION2_PART3)
+			{
+				station2p2();
+				trackCall();
+			}
+
+			blockAsk(13);
+
+			blockSay(18);
+	
 			$station = Station::POST_VISIT;
 			trackCall();
 
-			blockSay(16);
-			blockRec(17);
+			blockSay(19);
+			blockSay(20);
+			blockSay(21);
+			blockRec(22);
 			sms("sms1");
 		}
 		hangup();
@@ -457,8 +532,8 @@ switch ($station)
 if ($station == Station::POST_VISIT)
 {
 	logger("station=" . Station::POST_VISIT);
-	_log("Waiting for " . Config::$POST_VISIT_WAIT . " before sms2");
-	wait(Config::$POST_VISIT_WAIT);
+	_log("Waiting for " . Config::$POST_VISIT_WAIT . " seconds before sms2");
+	wait(Config::$POST_VISIT_WAIT * 1000);
 
 	sms("sms2");
 }

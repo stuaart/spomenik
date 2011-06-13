@@ -13,7 +13,6 @@ if (strlen($_GET['id']) == 0)
 	exit;
 }
 
-$id = cleanVar($_GET['id']);
 
 if (!mysql_connect($host, $user, $password))
 {
@@ -26,6 +25,8 @@ if (!mysql_select_db($database))
 	echo "Unable to select database: " . mysql_error();
 	exit;
 }
+
+$id = mysql_real_escape_string($_GET['id']);
 
 echo "<p>Logs for user $id</p><pre>";
 $res = mysql_query("SELECT * FROM log WHERE id = '$id' 
