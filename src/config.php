@@ -45,4 +45,6 @@ if (mysql_num_rows(mysql_query("SHOW TABLES LIKE 'config'")))
 }
 
 mysql_close();
+
+echo "<a href='admin.php'>Back</a>";
 ?>

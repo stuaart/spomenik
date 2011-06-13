@@ -536,11 +536,11 @@ switch ($station)
 	case Station::NOT_SET: default:
 	{
 		_log("Error occured determining station");
-		exit;
+		hangup();
 		break;
 	}
 
-	case Station::POST_VISIT: { exit; break; }
+	case Station::POST_VISIT: { hangup(); break; }
 }
 
 
