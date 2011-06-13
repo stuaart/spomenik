@@ -35,7 +35,7 @@ Amount of time within which someone must press 1, 2 or any other option button b
 <p>
 <h3>Set user state</h3>
 <form action="tracker.php" method="POST">
-	ID: <input type="text" name="id">
+	ID: <input type="text" name="callID">
 	Lang: <input type="text" name="lang">
 	Station: <input type="text" name="station">
 	<input type="submit" value="Submit">

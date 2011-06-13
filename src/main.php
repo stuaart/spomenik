@@ -90,7 +90,7 @@ function sms($type)
 	global $callID;
 	$smsURL = SMS_URL . "&type=" . $type . "&number=" . $callID;
 	_log("Setting SMS callback, URL being called is $smsURL");
-	logger("sms,type=$type,number=$number");
+	logger("sms,state=callback,type=$type,number=$callID");
 	$ch = curl_init($smsURL);
 	curl_exec($ch);
 	curl_close($ch);
@@ -393,27 +393,42 @@ if ($callID != "")
 	logger("answer voice");
 	answer();
 }
-else
+else 
 {
-	_log("Caught potential SMS callback");
+	_log("Caught potential SMS callback, type=$type, number=$number");
 	logger("answer sms");
 
 	// SMS callback
 	if (isset($number) && isset($type))
 	{
+		global $callID;
+		$callID = $number;
+			
+		$parsedNumber = parseNumber($number);
 		trackCall();
+		
 		// Note: SMSes only work in POST_VISIT state, state is only reset once 
 		// user has been sent SMS2
 		if ($station == Station::POST_VISIT)
 		{
 			_log("Triggered SMS callback, creating SMS for number=$number, 
 				  type=$type");
-			call(parseNumber($number), array("network" => "SMS"));
+			call($parsedNumber, array("network" => "SMS"));
 			if ($type == "sms1")
+			{
 				say(Config::$SMS1);
+				logger(
+					"sms,type=$type,state=sent,number=$parsedNumber,message=\""
+					. Config::$SMS1 . "\""
+				);
+			}
 			else if ($type == "sms2")
 			{
 				say(Config::$SMS2);
+				logger(
+					"sms,type=$type,state=sent,number=$parsedNumber,payload=\""
+				    . Config::$SMS2 . "\""
+				);
 				_log("Resetting user to " . Station::STATION1);
 				$station = Station::STATION1;
 				trackCall();
@@ -424,6 +439,7 @@ else
 	}
 	else
 		_log("SMS callback failed, number=$number, type=$type");
+	hangup();
 	exit;
 }
 
