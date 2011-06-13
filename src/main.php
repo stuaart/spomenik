@@ -518,18 +518,16 @@ switch ($station)
 				trackCall();
 			}
 
-			blockAsk(13);
-
 			blockSay(18);
 	
-			$station = Station::POST_VISIT;
 			trackCall();
 
 			blockSay(19);
 			blockSay(20);
 			blockSay(21);
 			blockRec(22);
-			sms("sms1");
+
+			$station = Station::POST_VISIT;
 		}
 		hangup();
 		break;
@@ -545,8 +543,10 @@ switch ($station)
 	case Station::POST_VISIT: { exit; break; }
 }
 
+
 if ($station == Station::POST_VISIT)
 {
+	sms("sms1");
 	logger("station=" . Station::POST_VISIT);
 	_log("Waiting for " . Config::$POST_VISIT_WAIT . " seconds before sms2");
 	wait(Config::$POST_VISIT_WAIT * 1000);
