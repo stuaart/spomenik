@@ -31,9 +31,12 @@ $id = mysql_real_escape_string($_GET['id']);
 echo "<p>Logs for user $id</p><pre>";
 $res = mysql_query("SELECT * FROM log WHERE id = '$id' 
 					ORDER BY timestamp ASC");
-while ($row = mysql_fetch_assoc($res))
+if ($res && mysql_num_rows($res) > 0)
 {
-	echo "[" . $row['timestamp'] . "] " . $row['entry'] . "\n";
+	while ($row = mysql_fetch_assoc($res))
+	{
+		echo "[" . $row['timestamp'] . "] " . $row['entry'] . "\n";
+	}
 }
 
 echo "</pre>";

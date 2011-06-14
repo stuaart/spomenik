@@ -27,6 +27,7 @@ class Config
 	public static $MAX_RECORD_TIME = 60;
 	public static $RECORD_SILENCE_TIMEOUT = 5;
 	public static $INPUT_TIMEOUT = 10;
+	public static $MAX_REPEATS = 4;
 }
 
 class Sys
@@ -86,7 +87,7 @@ function cleanVar($str)
 function logger($id, $entry)
 {
 	$postData = array();
-	$postData["id"] = "$callID";
+	$postData["id"] = "$id";
 	$postData["entry"] = $entry;
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, Sys::SYSTEM_LOG_URL);

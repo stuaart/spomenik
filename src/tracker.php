@@ -8,6 +8,10 @@ $host = MySQL::HOST;
 $password = file_get_contents(MySQL::PASSWD_FILE);
 $database = MySQL::DBNAME;
 
+// Note: Use of POST and GET variables is due to strange Tropo bug in switching
+// between development and production mode, in which curl POSTs no longer 
+// contain any data. Thus GETs are used as a workaround.
+
 if (strlen($_POST['callID']) == 0 && strlen($_GET['callID']) == 0)
 {
 	echo "ID variable is not set, id=" . $_POST['callID'] . 
@@ -48,7 +52,7 @@ else if (isset($_GET['station']) && $_GET['station'] != "")
 $response = "";
 
 $res = mysql_query("SELECT * FROM user WHERE id = '$id'");
-if (mysql_num_rows($res) == 0)
+if (!$res || ($res && mysql_num_rows($res) == 0))
 {
 	if (!mysql_num_rows(mysql_query("SHOW TABLES LIKE 'user'")))
 	{

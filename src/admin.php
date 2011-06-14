@@ -12,9 +12,10 @@
 		$(".mp3").jmp3(); 
 		// custom options
 		$("#recording").jmp3({
-			backcolor: "000000",
-			forecolor: "00ff00",
-			width: 200,
+			showfilename: "false",
+			backcolor: "aaaaaa",
+			forecolor: "cccccc",
+			width: 150,
 			showdownload: "false"
 		});
 	});
@@ -51,10 +52,10 @@ include_once("header.php");
 
 echo readConfig();
 
-echo "First text message payload:\n
-	<input type='text' name='sms1' value='" . Config::$SMS1 . "'><br/>\n
-Second text message payload:\n
-	<input type='text' name='sms2' value='" . Config::$SMS2 . "'><br/>\n
+echo "First text message payload:<br/>\n
+	<input type='textarea' name='sms1' cols='40' rows='6' value='" . Config::$SMS1 . "'><br/>\n
+Second text message payload:<br/>\n
+	<input type='textarea' name='sms2' cols='40' rows='6' value='" . Config::$SMS2 . "'><br/>\n
 Amount of time to wait before playing the first block of audio after answering the phonecall:\n
 	<input type='text' name='answer_wait' value='" . Config::$ANSWER_WAIT . "'> seconds<br/>\n
 Gap between the end of the experience and receiving the second text message:\n
@@ -64,7 +65,9 @@ Maximum amount of time someone can record a response for at the end of the exper
 Length of the silence during the user response recording that signals a timeout:
 	<input type='text' name='record_silence_timeout' value='" . Config::$RECORD_SILENCE_TIMEOUT . "'> seconds<br/>\n
 Amount of time within which someone must press 1, 2 or any other option button before a timeout message kicks in:\n
-	<input type='text' name='input_timeout' value='" . Config::$INPUT_TIMEOUT . "'> seconds<br/>";
+	<input type='text' name='input_timeout' value='" . Config::$INPUT_TIMEOUT . "'> seconds<br/>\n
+Maximum number of times someone can continually not press buttons when requested without the system hanging up on them:\n
+	<input type='text' name='max_repeats' value='" . Config::$MAX_REPEATS . "'>";
 ?>
 
 	<input type="submit" value="Submit">
@@ -145,35 +148,38 @@ if (!mysql_select_db($database))
 echo "<p><h3>User list</h3><pre>";
 
 $res = mysql_query("SELECT * FROM user");
-while ($row = mysql_fetch_assoc($res))
+if ($res && mysql_num_rows($res) > 0)
 {
-	$lang = "";
-	switch ($row['lang'])
+	while ($row = mysql_fetch_assoc($res))
 	{
-		case Lang::ENG: $lang = "English"; break;
-		case Lang::SLO: $lang = "Slovenian"; break;
-		default: $lang = "Not set"; break;
-	}
-	$station = "";
-	switch ($row['station'])
-	{
-		case Station::STATION1: $station = "Station 1"; break;
-		case Station::STATION2: $station = "Station 2"; break;
-		case Station::STATION2_PART3: $station = "Station 2, part 3"; break;
-		case Station::POST_VISIT: $station = "Post visit"; break;
-		default: $station = "Not set"; break;
-	}
-	
-	$recordingStr = "None";
-	$recording = substr(strrchr($row['recording'], "/"), 1);
-	if (strlen($recording) > 0)
-	{
-		$recordingStr = "recording=$recording "
-						. "<span id='recording'>uploads/$recording</span>";
-	}
+		$lang = "";
+		switch ($row['lang'])
+		{
+			case Lang::ENG: $lang = "English"; break;
+			case Lang::SLO: $lang = "Slovenian"; break;
+			default: $lang = "Not set"; break;
+		}
+		$station = "";
+		switch ($row['station'])
+		{
+			case Station::STATION1: $station = "Station 1"; break;
+			case Station::STATION2: $station = "Station 2"; break;
+			case Station::STATION2_PART3: $station = "Station 2, part 3"; break;
+			case Station::POST_VISIT: $station = "Post visit"; break;
+			default: $station = "Not set"; break;
+		}
+		
+		$recordingStr = "None";
+		$recording = substr(strrchr($row['recording'], "/"), 1);
+		if (strlen($recording) > 0)
+		{
+			$recordingStr = "recording=$recording "
+							. "<span id='recording'>uploads/$recording</span>";
+		}
 
-	echo "id=<a href='log.php?id=" . $row['id'] . "'>" . $row['id']
-		 . "</a>, station=$station, lang=$lang, $recordingStr\n";
+		echo "id=<a href='log.php?id=" . $row['id'] . "'>" . $row['id']
+			 . "</a>, station=$station, lang=$lang, $recordingStr\n";
+	}
 }
 
 echo "</pre></p>";

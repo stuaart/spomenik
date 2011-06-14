@@ -29,6 +29,7 @@ if (mysql_num_rows(mysql_query("SHOW TABLES LIKE 'config'")))
 	$record_silence_timeout = 
 		mysql_real_escape_string($_POST['record_silence_timeout']);
 	$input_timeout = mysql_real_escape_string($_POST['input_timeout']);
+	$max_repeats = mysql_real_escape_string($_POST['max_repeats']);
 
 	mysql_query("UPDATE config SET value = '$sms1' WHERE id = 'sms1'");
 	mysql_query("UPDATE config SET value = '$sms2' WHERE id = 'sms2'");
@@ -42,6 +43,8 @@ if (mysql_num_rows(mysql_query("SHOW TABLES LIKE 'config'")))
 					WHERE id = 'record_silence_timeout");
 	mysql_query("UPDATE config SET value = '$input_timeout' 
 					WHERE id = 'input_timeout'");
+	mysql_query("UPDATE config SET value = '$max_repeats' 
+					WHERE id = 'max_repeats'");
 }
 
 mysql_close();

@@ -22,8 +22,11 @@ if (!mysql_select_db($database))
 $res = mysql_query("SELECT unix_timestamp(timestamp) FROM log 
 					WHERE entry LIKE 'blockSay,num=5%' 
 					ORDER BY timestamp DESC");
-$num = mysql_num_rows($res);
+
+$num = 0;
 $ts = 0;
+if ($res)
+	$num = mysql_num_rows($res);
 if ($num > 0)
 {
 	$first = mysql_fetch_row($res);

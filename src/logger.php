@@ -1,6 +1,6 @@
 <?php // logger.php
 
-include("header.php");
+include_once("header.php");
 
 $user = MySQL::USER;
 $host = MySQL::HOST;

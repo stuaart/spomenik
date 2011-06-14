@@ -3,6 +3,10 @@
 include_once("header.php");
 include_once("header_shared.php");
 
+$user = MySQL::USER;
+$host = MySQL::HOST;
+$password = file_get_contents(MySQL::PASSWD_FILE);
+
 if (!isset($_FILES['filename']))
 {
 	echo "Invalid filename";

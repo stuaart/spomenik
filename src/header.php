@@ -37,7 +37,8 @@ function readConfig()
 				('max_record_time', '" . Config::$MAX_RECORD_TIME . "'),
 				('record_silence_timeout', '" 
 					. Config::$RECORD_SILENCE_TIMEOUT . "'),
-				('input_timeout', '" . Config::$INPUT_TIMEOUT . "')"
+				('input_timeout', '" . Config::$INPUT_TIMEOUT . "'),
+				('max_repeats', '" . Config::$MAX_REPEATS . "')"
 		);
 
 	}

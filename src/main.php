@@ -34,6 +34,8 @@ echo "Config::\$MAX_RECORD_TIME = " . Config::$MAX_RECORD_TIME . ";\n";
 echo "Config::\$RECORD_SILENCE_TIMEOUT = " . 
 		Config::$RECORD_SILENCE_TIMEOUT . ";\n";
 echo "Config::\$INPUT_TIMEOUT = " . Config::$INPUT_TIMEOUT . ";\n";
+echo "Config::\$MAX_REPEATS = " . Config::$MAX_REPEATS . ";\n";
+
 
 ?>
 
@@ -44,6 +46,7 @@ define ("SMS_URL", Sys::SMS_BASE_URL . $smsKey);
 $lang = Lang::SLO; // Language is always Slovenian // Lang::NOT_SET;
 $station = Station::NOT_SET;
 $callID = $currentCall->callerID;
+$repeats = 0;
 
 // UK + SLO only
 function parseNumber($num)
@@ -172,6 +175,7 @@ function blockRec($num, $langSet=true)
 		   "beep" => true,
 		   "timeout" => Config::$INPUT_TIMEOUT,
 		   "maxTime" => Config::$MAX_RECORD_TIME,
+		   "terminator" => "#",
 		   "silenceTimeout" => Config::$RECORD_SILENCE_TIMEOUT,
 		   "recordFormat" => "audio/mp3",
 		   "recordMethod" => "POST",
@@ -194,9 +198,16 @@ function langHandler($event)
 // Handlers for Station::STATION1
 function stationHandler1Timeout($event)
 {
-	global $callID;
+	global $callID, $repeats;
+	if ($repeats > Config::$MAX_REPEATS-1)
+	{
+		logger($callID, "stationHandler1Timeout,exit");
+		exit;
+	}
+
 	logger($callID, "stationHandler1Timeout,event=" . $event->value);
 	blockSay(4);
+	++$repeats;
 	_log("Looping back to blockAsk(2...)");
 	blockAsk(2, "" . Station::STATION1 . "," . Station::STATION2 . "",
              "stationHandler1_1", "stationHandler1Timeout");
@@ -228,9 +239,16 @@ function stationHandler1_2($event)
 // Handlers for Station::STATION2
 function stationHandler2Timeout($event)
 {
-	global $callID;
+	global $callID, $repeats;
+	if ($repeats > Config::$MAX_REPEATS-1)
+	{
+		logger($callID, "stationHandler1Timeout,exit");
+		exit;
+	}
+
 	logger($callID, "stationHandler2Timeout,event=" . $event->value);
 	blockSay(9);
+	++$repeats;
 	_log("Looping back to blockAsk(7...)");
     blockAsk(7, "" . Station::STATION1 . "," . Station::STATION2 . "",
              "stationHandler1_1", "stationHandler2Timeout");
@@ -280,9 +298,16 @@ function stationHandler2_3($event)
 // Handlers for Station::STATION2_PART3
 function stationHandler2P3Timeout($event)
 {
-	global $callID;
+	global $callID, $repeats;	
+	if ($repeats > Config::$MAX_REPEATS-1)
+	{
+		logger($callID, "stationHandler1Timeout,exit");
+		exit;
+	}
+
 	logger($callID, "stationHandler2P3Timeout,event=" . $event->value);
 	blockSay(15);
+	++$repeats;
 	_log("Looping back to blockAsk(13...)");
     blockAsk(13, "" . Station::STATION2_PART3 . "",
              "stationHandler2P3_1", "stationHandler2P3Timeout");
@@ -469,6 +494,7 @@ function station1()
 	//blockAsk(2, Lang::ENG . "," . Lang::SLO, "langHandler", false);
 	blockAsk(2, "" . Station::STATION1 . "," . Station::STATION2 . "", 
 			 "stationHandler1_1", "stationHandler1Timeout");
+	trackCall();
 	blockSay(5);
 	blockSay(6);
 }
