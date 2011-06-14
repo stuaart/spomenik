@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cp src/*.php ~/public_html/spomenik/
+cp -R swf js src/*.php ~/public_html/spomenik/

@@ -83,4 +83,17 @@ function cleanVar($str)
 	return $str;
 }
 
+function logger($id, $entry)
+{
+	$postData = array();
+	$postData["id"] = "$callID";
+	$postData["entry"] = $entry;
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, Sys::SYSTEM_LOG_URL);
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_exec($ch);
+}
+
 ?>

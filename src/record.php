@@ -21,16 +21,18 @@ if (!mysql_select_db($database))
 	exit;
 }
 
-if (!isset($_FILES['filename']) || !isset($id))
-{
-	echo "No ID or invalid filename";
-	exit;
-}
 
 if (isset($_GET['id']))
 	$id = mysql_real_escape_string($_GET['id']);
 else if (isset($_POST['id']))
 	$id = mysql_real_escape_string($_POST['id']);
+
+if (!isset($_FILES['filename']) || !isset($id))
+{
+	logger($id, "recording,state=error");
+	echo "No ID or invalid filename";
+	exit;
+}
 
 if (file_exists(Sys::UPLOAD_DIR) && is_dir(Sys::UPLOAD_DIR))
 {
@@ -49,6 +51,7 @@ if (file_exists(Sys::UPLOAD_DIR) && is_dir(Sys::UPLOAD_DIR))
 							 WHERE id = '$id'"))
 			{
 				echo "File successfully added as recording";
+				logger($id, "recording,state=uploaded");
 			}
 		}
 		else
@@ -62,9 +65,6 @@ else
 	echo "Upload dir doesn't exist or is not a directory\n";
 
 mysql_close();
-
-//echo 'Here is some more debugging info:';
-//print_r($_FILES);
 
 print "</pre>";
 

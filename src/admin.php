@@ -1,7 +1,46 @@
 <html>
-<head><title>Spomenik admin</title></head>
-<body>
+<head>
+	<title>Spomenik admin</title>
 
+	<script type="text/javascript" src="data.php"></script>
+	<script type="text/javascript" src="js/jquery-1.6.1.min.js"></script>
+	<script type="text/javascript" src="js/jquery.jmp3.js?1">
+	</script>
+	<script type="text/javascript">
+	$(document).ready(function(){
+		// default options
+		$(".mp3").jmp3(); 
+		// custom options
+		$("#recording").jmp3({
+			backcolor: "000000",
+			forecolor: "00ff00",
+			width: 200,
+			showdownload: "false"
+		});
+	});
+	</script>
+
+</head>
+<body>
+<p>
+<h3>Data</h3>
+<p>
+<span id="num_visits"></span> visits to the physical site.
+Last visit was at: <span id="last_visit"></span>.
+<script type="text/javascript">
+	var dateString = "&lt;no last visit&gt;";
+	if (visit_stats.last_visit > 0)
+	{
+		var newDate = new Date();
+		newDate.setTime(visit_stats.last_visit * 1000);
+		dateString = newDate.toUTCString();
+	}
+	document.getElementById("last_visit").innerHTML = dateString;
+	document.getElementById("num_visits").innerHTML 
+		= visit_stats.num_visits;
+</script>
+
+</p>
 <p>
 <h3>Set configuration</h3>
 <form action="config.php" method="POST">
@@ -37,7 +76,17 @@ Amount of time within which someone must press 1, 2 or any other option button b
 <form action="tracker.php" method="POST">
 	ID: <input type="text" name="callID">
 	Lang: <input type="text" name="lang" value="1">
-	Station: <input type="text" name="station">
+	Station: <select name="station">
+<?php
+include_once("header.php");
+echo "<option value='" . Station::NOT_SET . "'>Not set</option>";
+echo "<option value='" . Station::STATION1 . "'>Station 1</option>";
+echo "<option value='" . Station::STATION2 . "'>Station 2</option>";
+echo "<option value='" . Station::STATION2_PART3 . "'>Station 2, part 3</option>";
+echo "<option value='" . Station::POST_VISIT . "'>Post visit</option>";
+?>
+	</select>
+
 	<input type="submit" value="Submit">
 </form>
 </p>
@@ -110,16 +159,21 @@ while ($row = mysql_fetch_assoc($res))
 	{
 		case Station::STATION1: $station = "Station 1"; break;
 		case Station::STATION2: $station = "Station 2"; break;
+		case Station::STATION2_PART3: $station = "Station 2, part 3"; break;
 		case Station::POST_VISIT: $station = "Post visit"; break;
 		default: $station = "Not set"; break;
 	}
 	
+	$recordingStr = "None";
 	$recording = substr(strrchr($row['recording'], "/"), 1);
+	if (strlen($recording) > 0)
+	{
+		$recordingStr = "recording=$recording "
+						. "<span id='recording'>uploads/$recording</span>";
+	}
 
 	echo "id=<a href='log.php?id=" . $row['id'] . "'>" . $row['id']
-		 . "</a>, station=$station, lang=$lang, "
-		 . "recording=<a href='" . Sys::UPLOAD_URL . $recording
-		 . "'>$recording</a>\n";
+		 . "</a>, station=$station, lang=$lang, $recordingStr\n";
 }
 
 echo "</pre></p>";

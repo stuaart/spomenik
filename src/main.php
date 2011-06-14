@@ -70,27 +70,13 @@ function parseNumber($num)
 	return $prefix . $out; 
 }
 
-function logger($entry)
-{
-	global $callID;
-
-	$postData = array();
-	$postData["id"] = "$callID";
-	$postData["entry"] = $entry;
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, Sys::SYSTEM_LOG_URL);
-	curl_setopt($ch, CURLOPT_POST, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_exec($ch);
-}
 
 function sms($type)
 {
 	global $callID;
 	$smsURL = SMS_URL . "&type=" . $type . "&number=" . $callID;
 	_log("Setting SMS callback, URL being called is $smsURL");
-	logger("sms,state=callback,type=$type,number=$callID");
+	logger($callID, "sms,state=callback,type=$type,number=$callID");
 	$ch = curl_init($smsURL);
 	curl_exec($ch);
 	curl_close($ch);
@@ -117,8 +103,9 @@ function opt($opts, $choices, $handler, $timeoutHandler)
 
 function hangupHandler($event)
 {
+	global $callID;
 	_log("User hungup");
-	logger("hangupHandler,event=" . $event->value);
+	logger($callID, "hangupHandler,event=" . $event->value);
 	// Exit to preserve state
 	exit;
 }
@@ -149,19 +136,19 @@ function getBlockFile($num, $langSet)
 
 function logActive()
 {
-	global $currentCall;
+	global $currentCall, $callID;
 	if (!$currentCall->isActive())
-		logger("logActive,event=inactive");
+		logger($callID, "logActive,event=inactive");
 	else 
-		logger("logActive,event=active");
+		logger($callID, "logActive,event=active");
 }
 
 function blockSay($num, $langSet=true)
 {
-	global $currentCall;
+	global $currentCall, $callID;
 	$file = getBlockFile($num, $langSet);
 	_log("Saying from file $file");
-	logger("blockSay,num=$num,file=$file");
+	logger($callID, "blockSay,num=$num,file=$file");
 	logActive();
 	say($file);
 	logActive();
@@ -169,9 +156,10 @@ function blockSay($num, $langSet=true)
 
 function blockAsk($num, $opts, $handler, $timeoutHandler, $langSet=true)
 {
+	global $callID;
 	$file = getBlockFile($num, $langSet);
 	_log("Asking from file $file");
-	logger("blockAsk,num=$num,file=$file");
+	logger($callID, "blockAsk,num=$num,file=$file");
 	opt($file, $opts, $handler, $timeoutHandler);
 }
 
@@ -179,7 +167,7 @@ function blockRec($num, $langSet=true)
 {
 	global $callID;
 	$file = getBlockFile($num, $langSet);
-	logger("blockRec,num=$num,file=$file");
+	logger($callID, "blockRec,num=$num,file=$file");
 	record($file, array(
 		   "beep" => true,
 		   "timeout" => Config::$INPUT_TIMEOUT,
@@ -193,8 +181,8 @@ function blockRec($num, $langSet=true)
 
 function langHandler($event)
 {
-	global $lang;
-	logger("langHandler,event=" . $event->value);
+	global $lang, $callID;
+	logger($callID, "langHandler,event=" . $event->value);
 	switch ($event->value)
 	{
 		case Lang::ENG: case Lang::SLO: { $lang = $event->value; break; }
@@ -206,7 +194,8 @@ function langHandler($event)
 // Handlers for Station::STATION1
 function stationHandler1Timeout($event)
 {
-	logger("stationHandler1Timeout,event=" . $event->value);
+	global $callID;
+	logger($callID, "stationHandler1Timeout,event=" . $event->value);
 	blockSay(4);
 	_log("Looping back to blockAsk(2...)");
 	blockAsk(2, "" . Station::STATION1 . "," . Station::STATION2 . "",
@@ -214,8 +203,8 @@ function stationHandler1Timeout($event)
 }
 function stationHandler1_1($event)
 {
-	global $station;
-	logger("stationHandler1_1,event=" . $event->value);
+	global $station, $callID;
+	logger($callID, "stationHandler1_1,event=" . $event->value);
 	_log("stationHandler1_1() value=" . $event->value . " station=$station");
 	if ($event->value != $station)
 	{
@@ -225,8 +214,8 @@ function stationHandler1_1($event)
 }
 function stationHandler1_2($event)
 {
-	global $station;
-	logger("stationHandler1_2,event=" . $event->value);
+	global $station, $callID;
+	logger($callID, "stationHandler1_2,event=" . $event->value);
 	_log("stationHandler1_2() value=" . $event->value . " station=$station");
 	if ($event->value != $station)
 	{
@@ -239,7 +228,8 @@ function stationHandler1_2($event)
 // Handlers for Station::STATION2
 function stationHandler2Timeout($event)
 {
-	logger("stationHandler2Timeout,event=" . $event->value);
+	global $callID;
+	logger($callID, "stationHandler2Timeout,event=" . $event->value);
 	blockSay(9);
 	_log("Looping back to blockAsk(7...)");
     blockAsk(7, "" . Station::STATION1 . "," . Station::STATION2 . "",
@@ -247,8 +237,8 @@ function stationHandler2Timeout($event)
 }
 function stationHandler2_1($event)
 {
-	global $station;
-	logger("stationHandler2_1,event=" . $event->value);
+	global $station, $callID;
+	logger($callID, "stationHandler2_1,event=" . $event->value);
 	_log("stationHandler2_1() value=" . $event->value . " station=$station");
 	if ($event->value != $station)
 	{
@@ -258,8 +248,8 @@ function stationHandler2_1($event)
 }
 function stationHandler2_2($event)
 {
-	global $station;
-	logger("stationHandler2_2,event=" . $event->value);
+	global $station, $callID;
+	logger($callID, "stationHandler2_2,event=" . $event->value);
 	_log("stationHandler2_2() value=" . $event->value . " station=$station");
 
 	if ($event->value == Station::STATION1)
@@ -280,8 +270,8 @@ function stationHandler2_2($event)
 }
 function stationHandler2_3($event)
 {
-	global $station;
-	logger("stationHandler2_3,event=" . $event->value);
+	global $station, $callID;
+	logger($callID, "stationHandler2_3,event=" . $event->value);
 	$station = Station::STATION1;
 	trackCall();
 	_log("stationhandler2_3(), fall out to main call with Station::STATION1");
@@ -290,7 +280,8 @@ function stationHandler2_3($event)
 // Handlers for Station::STATION2_PART3
 function stationHandler2P3Timeout($event)
 {
-	logger("stationHandler2P3Timeout,event=" . $event->value);
+	global $callID;
+	logger($callID, "stationHandler2P3Timeout,event=" . $event->value);
 	blockSay(15);
 	_log("Looping back to blockAsk(13...)");
     blockAsk(13, "" . Station::STATION2_PART3 . "",
@@ -298,8 +289,8 @@ function stationHandler2P3Timeout($event)
 }
 function stationHandler2P3_1($event)
 {
-	global $station;
-	logger("stationHandler2P3_1,event=" . $event->value);
+	global $station, $callID;
+	logger($callID, "stationHandler2P3_1,event=" . $event->value);
 	_log("stationHandler2P3_1() value=" . $event->value . " station=$station");
 	$station = Station::STATION2_PART3;
 	if ($event->value != $station)
@@ -311,8 +302,8 @@ function stationHandler2P3_1($event)
 }
 function stationHandler2P3_2($event)
 {
-	global $station;
-	logger("stationHandler2P3_2,event=" . $event->value);
+	global $station, $callID;
+	logger($callID, "stationHandler2P3_2,event=" . $event->value);
 	_log("stationHandler2P3_2() value=" . $event->value . " station=$station");
 
 	if ($event->value == Station::STATION2)
@@ -333,8 +324,8 @@ function stationHandler2P3_2($event)
 }
 function stationHandler2P3_3($event)
 {
-	global $station;
-	logger("stationHandler2P3_3,event=" . $event->value);
+	global $station, $callID;
+	logger($callID, "stationHandler2P3_3,event=" . $event->value);
 	$station = Station::STATION2;
 	trackCall();
 	_log("stationhandler2P3_3(), fall out to main call with Station::STATION2");
@@ -344,6 +335,7 @@ function stationHandler2P3_3($event)
 function trackCall()
 {
 	global $lang, $station, $callID;
+	logger($callID, "trackCall,state=setting,lang=$lang,station=$station");
 	_log("trackCall(): globals... lang=$lang, station=$station, id=$callID");
 
 	$url = Sys::CALL_TRACK_URL . "?callID=$callID"; // Note POST and GET vars
@@ -383,6 +375,8 @@ function trackCall()
 
 	curl_close($ch);
 
+	logger($callID, "trackCall,state=response,lang=$lang,station=$station");
+
 	_log("Language=$lang, Station=$station");
 }
 
@@ -390,13 +384,13 @@ function trackCall()
 if ($callID != "")
 {
 	_log("Answering call from \"" . $callID . "\"");
-	logger("answer voice");
+	logger($callID, "answer,state=voice");
 	answer();
 }
 else 
 {
 	_log("Caught potential SMS callback, type=$type, number=$number");
-	logger("answer sms");
+	logger($number, "answer,state=sms");
 
 	// SMS callback
 	if (isset($number) && isset($type))
@@ -417,7 +411,7 @@ else
 			if ($type == "sms1")
 			{
 				say(Config::$SMS1);
-				logger(
+				logger($number,
 					"sms,type=$type,state=sent,number=$parsedNumber,message=\""
 					. Config::$SMS1 . "\""
 				);
@@ -425,7 +419,7 @@ else
 			else if ($type == "sms2")
 			{
 				say(Config::$SMS2);
-				logger(
+				logger($number,
 					"sms,type=$type,state=sent,number=$parsedNumber,payload=\""
 				    . Config::$SMS2 . "\""
 				);
@@ -439,14 +433,16 @@ else
 	}
 	else
 		_log("SMS callback failed, number=$number, type=$type");
-	hangup();
 	exit;
 }
 
 if (isset($token))
 {
+	$numberStr = $callID;
+	if (isset($number))
+		$numberStr = $number;
 	_log("Ignoring SMS / callback request");
-	logger("ignored callback");
+	logger($numberStr, "ignored callback");
 	exit;
 }
 
@@ -460,12 +456,12 @@ if ($station == Station::NOT_SET)
 {
 	_log("Initialising station to STATION1");
 	$station = Station::STATION1;
-	logger("init");
+	logger($callID, "init");
 }
 else
 	_log("Call tracked, station=$station, lang=$lang");
 
-logger("station=$station");
+logger($callID, "station=$station");
 
 function station1()
 {
@@ -497,6 +493,13 @@ switch ($station)
 		break;
 	}
 
+	// Special case of calling up and your state is still STATION2_PART3 
+	// (unlikely). Solution: reset state and fall through back to STATION2 stuff
+	case Station::STATION2_PART3:
+	{
+		$station = Station::STATION2;
+		trackCall();
+	}
 	case Station::STATION2:
 	{
 		blockAsk(7, "" . Station::STATION1 . "," . Station::STATION2 . "", 
@@ -520,6 +523,7 @@ switch ($station)
 
 			blockSay(18);
 	
+			$station = Station::POST_VISIT;
 			trackCall();
 
 			blockSay(19);
@@ -527,7 +531,6 @@ switch ($station)
 			blockSay(21);
 			blockRec(22);
 
-			$station = Station::POST_VISIT;
 		}
 		hangup();
 		break;
@@ -546,11 +549,11 @@ switch ($station)
 if ($station == Station::POST_VISIT)
 {
 	sms("sms1");
-//	logger("station=" . Station::POST_VISIT);
-//	_log("Waiting for " . Config::$POST_VISIT_WAIT . " seconds before sms2");
-//	wait(Config::$POST_VISIT_WAIT * 1000);
+	logger($callID, "station=" . Station::POST_VISIT);
+	_log("Waiting for " . Config::$POST_VISIT_WAIT . " seconds before sms2");
+	wait(Config::$POST_VISIT_WAIT * 1000);
 
-//	sms("sms2");
+	sms("sms2");
 }
 else
 {

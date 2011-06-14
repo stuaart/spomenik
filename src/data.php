@@ -23,10 +23,15 @@ $res = mysql_query("SELECT unix_timestamp(timestamp) FROM log
 					WHERE entry LIKE 'blockSay,num=5%' 
 					ORDER BY timestamp DESC");
 $num = mysql_num_rows($res);
+$ts = 0;
 if ($num > 0)
+{
 	$first = mysql_fetch_row($res);
-
-echo "$num," . $first[0];
+	$ts = $first[0];
+}
+else
+	$ts = 0;
+echo "var visit_stats = { \"num_visits\": $num, \"last_visit\": $ts }";
 
 mysql_close();
 ?>
