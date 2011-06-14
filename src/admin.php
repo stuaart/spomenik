@@ -9,9 +9,15 @@
 	<script type="text/javascript">
 	$(document).ready(function(){
 		// default options
-		$(".mp3").jmp3(); 
+		$(".mp3").jmp3({
+			showfilename: "false",
+			backcolor: "aaaaaa",
+			forecolor: "cccccc",
+			width: 150,
+			showdownload: "false"
+		}); 
 		// custom options
-		$("#recording").jmp3({
+		$("#player").jmp3({
 			showfilename: "false",
 			backcolor: "aaaaaa",
 			forecolor: "cccccc",
@@ -24,24 +30,35 @@
 </head>
 <body>
 <p>
-<h3>Data</h3>
+<h3><a href="data.php">Data</a></h3>
 <p>
 <span id="num_visits"></span> visits to the physical site.
 Last visit was at: <span id="last_visit"></span>.
+</p>
+
+<p>
+<div id="recording_set"></div>
+</p>
+
 <script type="text/javascript">
 	var dateString = "&lt;no last visit&gt;";
-	if (visit_stats.last_visit > 0)
+	if (data.visit_stats.last_visit > 0)
 	{
 		var newDate = new Date();
-		newDate.setTime(visit_stats.last_visit * 1000);
+		newDate.setTime(data.visit_stats.last_visit * 1000);
 		dateString = newDate.toUTCString();
 	}
 	document.getElementById("last_visit").innerHTML = dateString;
 	document.getElementById("num_visits").innerHTML 
-		= visit_stats.num_visits;
+		= data.visit_stats.num_visits;
+	for (var i = 0; i < data.recordings.length; ++i)
+	{
+		document.getElementById("recording_set").innerHTML += 
+			"<span id='player'>" + data.recordings[i].url + "</span>";
+	}
+
 </script>
 
-</p>
 <p>
 <h3>Set configuration</h3>
 <form action="config.php" method="POST">
@@ -174,7 +191,7 @@ if ($res && mysql_num_rows($res) > 0)
 		if (strlen($recording) > 0)
 		{
 			$recordingStr = "recording=$recording "
-							. "<span id='recording'>uploads/$recording</span>";
+							. "<span id='player'>uploads/$recording</span>";
 		}
 
 		echo "id=<a href='log.php?id=" . $row['id'] . "'>" . $row['id']

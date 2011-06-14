@@ -85,11 +85,6 @@ function sms($type)
 	curl_close($ch);
 }
 
-function errorMsg($event) 
-{
-	say(Config::ERROR_MESSAGE);
-}
-
 function opt($opts, $choices, $handler, $timeoutHandler)
 {
 	_log("opt(), opts=$opts, choices=$choices");

@@ -1,6 +1,7 @@
 <?php
 
-include("header.php");
+include_once("header.php");
+include_once("header_shared.php");
 
 $user = MySQL::USER;
 $host = MySQL::HOST;
@@ -34,7 +35,28 @@ if ($num > 0)
 }
 else
 	$ts = 0;
-echo "var visit_stats = { \"num_visits\": $num, \"last_visit\": $ts }";
+
+// Return as JSON objects assigned to vars
+echo "var data = { visit_stats : { num_visits: $num, last_visit: $ts }, ";
+
+echo " recordings : [";
+
+$res = mysql_query("SELECT id,recording FROM user");
+if ($res && mysql_num_rows($res) > 0)
+{
+	$numRows = mysql_num_rows($res);
+	while ($row = mysql_fetch_assoc($res))
+	{
+		$recordingURL = Sys::UPLOAD_URL . 
+						substr(strrchr($row['recording'], "/"), 1);
+		echo "{ id: '" . $row['id'] . "', url: '$recordingURL' }";
+		if (--$numRows > 0)
+			echo ",";
+	}
+}
+
+echo "]};";
 
 mysql_close();
+
 ?>

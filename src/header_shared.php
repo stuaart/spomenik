@@ -32,8 +32,6 @@ class Config
 
 class Sys
 {
-	const ERROR_MESSAGE = 
-		"http://horizab1.miniserver.com/~stuart/spomenik/audio/error.mp3";
 	const AUDIO_BASE_URL = 
 		"http://horizab1.miniserver.com/~stuart/spomenik/audio/";
 	const SMS_BASE_URL = 
