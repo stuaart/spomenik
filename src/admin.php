@@ -188,7 +188,17 @@ if (isset($_GET['delete']))
 	$user = mysql_real_escape_string($_GET['delete']);
 	$res = mysql_query("DELETE FROM user WHERE id='$user'");
 	unset($_GET['delete']);
+	echo "<script type='text/javascript'>window.location='admin.php'</script>";
 }
+
+if (isset($_GET['delete_log']))
+{
+	$user = mysql_real_escape_string($_GET['delete_log']);
+	$res = mysql_query("DELETE FROM log WHERE id='$user'");
+	unset($_GET['delete_log']);
+	echo "<script type='text/javascript'>window.location='admin.php'</script>";
+}
+
 
 echo "<p><h3>User list</h3><pre>";
 
@@ -214,7 +224,8 @@ if ($res && mysql_num_rows($res) > 0)
 			default: $station = "Not set"; break;
 		}
 		
-		$deleteStr = "<a href='?delete=" . $row['id'] . "'>delete</a>";
+		$deleteStr = "<a href='?delete=" . $row['id'] . "'>delete user</a>";
+		$deleteLogStr = "<a href='?delete_log=" . $row['id'] . "'>delete logs</a>";
 		$recordingStr = "None";
 		$recording = substr(strrchr($row['recording'], "/"), 1);
 		if (strlen($recording) > 0)
@@ -225,7 +236,7 @@ if ($res && mysql_num_rows($res) > 0)
 
 		echo "id=<a href='log.php?id=" . $row['id'] . "'>" . $row['id']
 			 . "</a>, station=$station, lang=$lang, $recordingStr "
-			 . "[$deleteStr]\n";
+			 . "[$deleteStr] [$deleteLogStr]\n";
 	}
 }
 

@@ -41,7 +41,7 @@ echo "var data = { visit_stats : { num_visits: $num, last_visit: $ts }, ";
 
 echo " recordings : [";
 
-$res = mysql_query("SELECT recording FROM user");
+$res = mysql_query("SELECT recording FROM user WHERE recording IS NOT NULL");
 if ($res && mysql_num_rows($res) > 0)
 {
 	$numRows = mysql_num_rows($res);

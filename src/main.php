@@ -118,16 +118,20 @@ function getBlockFile($num, $langSet)
 		switch ($lang)
 		{
 			case Lang::ENG: 
+			{
+				$blockStr .= ("-" . $lang . ".mp3");
+				break;
+			}
 			case Lang::SLO: 
 			{ 
-				$blockStr .= ("-" . $lang); 
+				$blockStr .= ("-" . $lang . ".ulaw"); 
 				break; 
 			}
 			default: { break; }
 		}
 	}
 
-	$file = Sys::AUDIO_BASE_URL . "/" . $blockStr . ".mp3";
+	$file = Sys::AUDIO_BASE_URL . "/" . $blockStr;
 
 	return $file;
 }
