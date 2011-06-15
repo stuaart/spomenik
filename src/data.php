@@ -41,7 +41,7 @@ echo "var data = { visit_stats : { num_visits: $num, last_visit: $ts }, ";
 
 echo " recordings : [";
 
-$res = mysql_query("SELECT id,recording FROM user");
+$res = mysql_query("SELECT recording FROM user");
 if ($res && mysql_num_rows($res) > 0)
 {
 	$numRows = mysql_num_rows($res);
@@ -49,7 +49,7 @@ if ($res && mysql_num_rows($res) > 0)
 	{
 		$recordingURL = Sys::UPLOAD_URL . 
 						substr(strrchr($row['recording'], "/"), 1);
-		echo "{ id: '" . $row['id'] . "', url: '$recordingURL' }";
+		echo "{ url: '$recordingURL' }";
 		if (--$numRows > 0)
 			echo ",";
 	}

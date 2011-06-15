@@ -4,20 +4,10 @@
 
 	<script type="text/javascript" src="data.php"></script>
 	<script type="text/javascript" src="js/jquery-1.6.1.min.js"></script>
-	<script type="text/javascript" src="js/jquery.jmp3.js?1">
-	</script>
+	<script type="text/javascript" src="js/jquery.jmp3.js?1"></script>
 	<script type="text/javascript">
 	$(document).ready(function(){
-		// default options
-		$(".mp3").jmp3({
-			showfilename: "false",
-			backcolor: "aaaaaa",
-			forecolor: "cccccc",
-			width: 150,
-			showdownload: "false"
-		}); 
-		// custom options
-		$("#player").jmp3({
+		$(".player").jmp3({
 			showfilename: "false",
 			backcolor: "aaaaaa",
 			forecolor: "cccccc",
@@ -44,9 +34,40 @@ Last visit was at: <span id="last_visit"></span>.
 	var dateString = "&lt;no last visit&gt;";
 	if (data.visit_stats.last_visit > 0)
 	{
-		var newDate = new Date();
-		newDate.setTime(data.visit_stats.last_visit * 1000);
-		dateString = newDate.toUTCString();
+		var theDate = new Date();
+		var now = new Date();
+		theDate.setTime(data.visit_stats.last_visit * 1000);
+		var diff = (now.getTime() - theDate.getTime()) / 1000;
+		var hours = Math.floor((diff / 60 / 60));
+		var days = Math.floor(diff / 24);
+		var weeks = Math.floor(diff / 7);
+		dateString = "just now";
+		if (hours > 0 && hours < 24)
+		{
+			dateString = hours;
+			if (hours == 1)
+				dateString += " hour ago";
+			else
+				dateString += " hours ago";
+		}
+		else if (days > 0 && days < 7)
+		{
+			dateString = days;
+			if (days == 1)
+				dateString += " day ago";
+			else
+				dateString += " days ago";
+		}
+		else if (weeks > 0 && weeks < 52)
+		{
+			dateString = weeks;
+			if (weeks == 1)
+				dateString += " week ago";
+			else
+				dateString += " weeks ago";
+		}
+
+
 	}
 	document.getElementById("last_visit").innerHTML = dateString;
 	document.getElementById("num_visits").innerHTML 
@@ -54,7 +75,7 @@ Last visit was at: <span id="last_visit"></span>.
 	for (var i = 0; i < data.recordings.length; ++i)
 	{
 		document.getElementById("recording_set").innerHTML += 
-			"<span id='player'>" + data.recordings[i].url + "</span>";
+			"<span class='player'>" + data.recordings[i].url + "</span>";
 	}
 
 </script>
@@ -162,6 +183,13 @@ if (!mysql_select_db($database))
 	exit;
 }
 
+if (isset($_GET['delete']))
+{
+	$user = mysql_real_escape_string($_GET['delete']);
+	$res = mysql_query("DELETE FROM user WHERE id='$user'");
+	unset($_GET['delete']);
+}
+
 echo "<p><h3>User list</h3><pre>";
 
 $res = mysql_query("SELECT * FROM user");
@@ -186,6 +214,7 @@ if ($res && mysql_num_rows($res) > 0)
 			default: $station = "Not set"; break;
 		}
 		
+		$deleteStr = "<a href='?delete=" . $row['id'] . "'>delete</a>";
 		$recordingStr = "None";
 		$recording = substr(strrchr($row['recording'], "/"), 1);
 		if (strlen($recording) > 0)
@@ -195,7 +224,8 @@ if ($res && mysql_num_rows($res) > 0)
 		}
 
 		echo "id=<a href='log.php?id=" . $row['id'] . "'>" . $row['id']
-			 . "</a>, station=$station, lang=$lang, $recordingStr\n";
+			 . "</a>, station=$station, lang=$lang, $recordingStr "
+			 . "[$deleteStr]\n";
 	}
 }
 
