@@ -58,12 +58,14 @@ if (!$res || ($res && mysql_num_rows($res) == 0))
 	{
 		mysql_query("CREATE TABLE user (id VARCHAR(50) NOT NULL, 
 										station INT(2), lang INT(2), 
-										recording VARCHAR(255))"
+										recording VARCHAR(255),
+										recording_timestamp DATETIME)"
 		);
 	}
 
 	mysql_query("INSERT INTO user VALUES('" . $id . "', " . Station::NOT_SET . 
-										 ", " . Lang::NOT_SET . ", NULL)");
+										 ", " . Lang::NOT_SET . ", NULL, 
+										 NULL)");
 }
 
 $row = mysql_fetch_assoc(mysql_query("SELECT * FROM user WHERE id = '$id'"));

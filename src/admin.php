@@ -15,33 +15,17 @@
 			showdownload: "false"
 		});
 	});
-	</script>
-
-</head>
-<body>
-<p>
-<h3><a href="data.php">Data</a></h3>
-<p>
-<span id="num_visits"></span> visits to the physical site.
-Last visit was at: <span id="last_visit"></span>.
-</p>
-
-<p>
-<div id="recording_set"></div>
-</p>
-
-<script type="text/javascript">
-	var dateString = "&lt;no last visit&gt;";
-	if (data.visit_stats.last_visit > 0)
+	
+	function readableTimestamp(ts)
 	{
 		var theDate = new Date();
 		var now = new Date();
-		theDate.setTime(data.visit_stats.last_visit * 1000);
+		theDate.setTime(ts * 1000);
 		var diff = (now.getTime() - theDate.getTime()) / 1000;
 		var hours = Math.floor((diff / 60 / 60));
 		var days = Math.floor(diff / 24);
 		var weeks = Math.floor(diff / 7);
-		dateString = "just now";
+		var dateString = "just now";
 		if (hours > 0 && hours < 24)
 		{
 			dateString = hours;
@@ -66,16 +50,35 @@ Last visit was at: <span id="last_visit"></span>.
 			else
 				dateString += " weeks ago";
 		}
-
-
+		return dateString;
 	}
+	</script>
+
+</head>
+<body>
+<p>
+<h3><a href="data.php">Data</a></h3>
+<p>
+<span id="num_visits"></span> visits to the physical site.
+Last visit was at: <span id="last_visit"></span>.
+</p>
+
+<p>
+<div id="recording_set"></div>
+</p>
+
+<script type="text/javascript">
+	var dateString = "&lt;no last visit&gt;";
+	if (data.visit_stats.last_visit > 0)
+		dateString = readableTimestamp(data.visit_stats.last_visit);
 	document.getElementById("last_visit").innerHTML = dateString;
 	document.getElementById("num_visits").innerHTML 
 		= data.visit_stats.num_visits;
 	for (var i = 0; i < data.recordings.length; ++i)
 	{
 		document.getElementById("recording_set").innerHTML += 
-			"<span class='player'>" + data.recordings[i].url + "</span>";
+			"<span class='player'>" + data.recordings[i].url + "</span>" 
+			+ readableTimestamp(data.recordings[i].recording_timestamp);
 	}
 
 </script>
@@ -116,17 +119,22 @@ Maximum number of times someone can continually not press buttons when requested
 <h3>Set user state</h3>
 <form action="tracker.php" method="POST">
 	ID: <input type="text" name="callID">
-	Lang: <input type="text" name="lang" value="1">
-	Station: <select name="station">
 <?php
-include_once("header.php");
+include_once("header_shared.php");
+
+echo "Lang: <select name='lang'>";
+echo "<option value='" . Lang::SLO . "'>Slovenian</option>";
+echo "<option value='" . Lang::ENG . "'>English</option>";
+echo "</select>";
+
+echo "Station: <select name='station'>";
 echo "<option value='" . Station::NOT_SET . "'>Not set</option>";
 echo "<option value='" . Station::STATION1 . "'>Station 1</option>";
 echo "<option value='" . Station::STATION2 . "'>Station 2</option>";
 echo "<option value='" . Station::STATION2_PART3 . "'>Station 2, part 3</option>";
 echo "<option value='" . Station::POST_VISIT . "'>Post visit</option>";
+echo "</select>";
 ?>
-	</select>
 
 	<input type="submit" value="Submit">
 </form>

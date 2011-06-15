@@ -43,10 +43,16 @@ echo "Config::\$MAX_REPEATS = " . Config::$MAX_REPEATS . ";\n";
 define ("SMS_URL", Sys::SMS_BASE_URL . $smsKey);
 
 // Globals
-$lang = Lang::SLO; // Language is always Slovenian // Lang::NOT_SET;
-$station = Station::NOT_SET;
 $callID = $currentCall->callerID;
 $repeats = 0;
+$lang = Lang::NOT_SET;
+$station = Station::NOT_SET;
+
+trackCall();
+
+// Set the default non-administrator language
+if ($lang != Lang::ENG)
+	$lang = Lang::SLO;
 
 // UK + SLO only
 function parseNumber($num)
