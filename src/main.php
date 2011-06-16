@@ -48,11 +48,6 @@ $repeats = 0;
 $lang = Lang::NOT_SET;
 $station = Station::NOT_SET;
 
-trackCall();
-
-// Set the default non-administrator language
-if ($lang != Lang::ENG)
-	$lang = Lang::SLO;
 
 // UK + SLO only
 function parseNumber($num)
@@ -481,6 +476,9 @@ _log("Wait for " . Config::$ANSWER_WAIT . " seconds");
 wait(Config::$ANSWER_WAIT * 1000);
 
 trackCall();
+// Set the default non-administrator language
+if ($lang != Lang::ENG)
+	$lang = Lang::SLO;
 
 if ($station == Station::NOT_SET)
 {

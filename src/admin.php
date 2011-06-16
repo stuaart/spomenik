@@ -23,8 +23,8 @@
 		theDate.setTime(ts * 1000);
 		var diff = (now.getTime() - theDate.getTime()) / 1000;
 		var hours = Math.floor((diff / 60 / 60));
-		var days = Math.floor(diff / 24);
-		var weeks = Math.floor(diff / 7);
+		var days = Math.floor(hours / 24);
+		var weeks = Math.floor(weeks / 7);
 		var dateString = "just now";
 		if (hours > 0 && hours < 24)
 		{
@@ -78,7 +78,7 @@ Last visit was at: <span id="last_visit"></span>.
 	{
 		document.getElementById("recording_set").innerHTML += 
 			"<span class='player'>" + data.recordings[i].url + "</span>" 
-			+ readableTimestamp(data.recordings[i].recording_timestamp);
+			+ readableTimestamp(data.recordings[i].timestamp);
 	}
 
 </script>
@@ -229,7 +229,8 @@ if ($res && mysql_num_rows($res) > 0)
 			case Station::STATION2: $station = "Station 2"; break;
 			case Station::STATION2_PART3: $station = "Station 2, part 3"; break;
 			case Station::POST_VISIT: $station = "Post visit"; break;
-			default: $station = "Not set"; break;
+			case Station::NOT_SET: $station = "Not set"; break;
+			default: $station = "Error, undefined"; break;
 		}
 		
 		$deleteStr = "<a href='?delete=" . $row['id'] . "'>delete user</a>";
