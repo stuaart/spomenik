@@ -118,11 +118,11 @@ Maximum number of times someone can continually not press buttons when requested
 <p>
 <h3>Set user state</h3>
 <form action="tracker.php" method="POST">
-	ID: <input type="text" name="callID">
+	Phone number: <input type="text" name="callID">
 <?php
 include_once("header_shared.php");
 
-echo "Lang: <select name='lang'>";
+echo "Language: <select name='lang'>";
 echo "<option value='" . Lang::SLO . "'>Slovenian</option>";
 echo "<option value='" . Lang::ENG . "'>English</option>";
 echo "</select>";
@@ -142,6 +142,7 @@ echo "</select>";
 <p>
 <h3>Upload audio block files</h3>
 <form action="upload.php" enctype="multipart/form-data" method="POST">
+Block to replace: 
 <select name="block">
 <?php
 
@@ -165,7 +166,7 @@ if ($fh = opendir(Sys::AUDIO_DIR))
 
 ?>
 	</select>
-	File: <input type="file" name="filename">
+	Replace with file: <input type="file" name="filename">
 	<input type="submit" value="Upload">
 </form>
 </p>
@@ -191,10 +192,28 @@ if (!mysql_select_db($database))
 	exit;
 }
 
-if (isset($_GET['delete']))
+if (isset($_GET['delete_all']))
 {
-	$user = mysql_real_escape_string($_GET['delete']);
-	$res = mysql_query("DELETE FROM user WHERE id='$user'");
+	$user = mysql_real_escape_string($_GET['delete_all']);
+	mysql_query("DELETE FROM log WHERE id='$user'");
+	$res = mysql_query("SELECT recording FROM user WHERE id='$user'");
+	if (mysql_num_rows($res) > 0)
+	{
+		$row = mysql_fetch_row($res);
+		if ($row[0]!= "");
+			unlink($row[0]);
+	}
+	mysql_query("DELETE FROM user WHERE id='$user'");
+
+	unset($_GET['delete_all']);
+
+	echo "<script type='text/javascript'>window.location='admin.php'</script>";
+}
+
+if (isset($_GET['delete_user']))
+{
+	$user = mysql_real_escape_string($_GET['delete_user']);
+	mysql_query("DELETE FROM user WHERE id='$user'");
 	unset($_GET['delete']);
 	echo "<script type='text/javascript'>window.location='admin.php'</script>";
 }
@@ -202,8 +221,23 @@ if (isset($_GET['delete']))
 if (isset($_GET['delete_log']))
 {
 	$user = mysql_real_escape_string($_GET['delete_log']);
-	$res = mysql_query("DELETE FROM log WHERE id='$user'");
+	mysql_query("DELETE FROM log WHERE id='$user'");
 	unset($_GET['delete_log']);
+	echo "<script type='text/javascript'>window.location='admin.php'</script>";
+}
+
+if (isset($_GET['delete_upload']))
+{
+	$user = mysql_real_escape_string($_GET['delete_upload']);
+	$res = mysql_query("SELECT recording FROM user WHERE id='$user'");
+	if (mysql_num_rows($res) > 0)
+	{
+		$row = mysql_fetch_row($res);
+		if ($row[0]!= "");
+			unlink($row[0]);
+	}
+	mysql_query("UPDATE user SET recording = NULL WHERE id=$user");
+	unset($_GET['delete_upload']);
 	echo "<script type='text/javascript'>window.location='admin.php'</script>";
 }
 
@@ -220,7 +254,7 @@ if ($res && mysql_num_rows($res) > 0)
 		{
 			case Lang::ENG: $lang = "English"; break;
 			case Lang::SLO: $lang = "Slovenian"; break;
-			default: $lang = "Not set"; break;
+			default: $lang = "not set"; break;
 		}
 		$station = "";
 		switch ($row['station'])
@@ -229,23 +263,32 @@ if ($res && mysql_num_rows($res) > 0)
 			case Station::STATION2: $station = "Station 2"; break;
 			case Station::STATION2_PART3: $station = "Station 2, part 3"; break;
 			case Station::POST_VISIT: $station = "Post visit"; break;
-			case Station::NOT_SET: $station = "Not set"; break;
-			default: $station = "Error, undefined"; break;
+			case Station::NOT_SET: $station = "not set"; break;
+			default: $station = "error, undefined"; break;
 		}
-		
-		$deleteStr = "<a href='?delete=" . $row['id'] . "'>delete user</a>";
-		$deleteLogStr = "<a href='?delete_log=" . $row['id'] . "'>delete logs</a>";
-		$recordingStr = "None";
+	
+		$deleteAllStr = "<a href='?delete_all=" . $row['id'] . 
+						 "'>delete all</a>";
+		$deleteUserStr = "<a href='?delete_user=" . $row['id'] . 
+						 "'>delete user</a>";
+		$deleteLogStr = "<a href='?delete_log=" . $row['id'] . 
+						"'>delete logs</a>";
+		$deleteUploadStr = "<a href='?delete_upload=" . $row['id'] .
+						   "'>delete recording</a>";
+
+		$recordingStr = "";
 		$recording = substr(strrchr($row['recording'], "/"), 1);
 		if (strlen($recording) > 0)
-		{
-			$recordingStr = "recording=$recording "
-							. "<span id='player'>uploads/$recording</span>";
-		}
+			$recordingStr = "Recording file: $recording";
 
-		echo "id=<a href='log.php?id=" . $row['id'] . "'>" . $row['id']
-			 . "</a>, station=$station, lang=$lang, $recordingStr "
-			 . "[$deleteStr] [$deleteLogStr]\n";
+		echo "<p>";
+		echo "<strong>Phone number: <a href='log.php?id=" . $row['id'] . "'>" 
+			  . $row['id'] . "</a></strong><br/>";
+		echo "Station: <em>$station</em>. Language: <em>$lang</em>. " 
+			 . "$recordingStr<br/>";
+		echo "ACTIONS: [$deleteUserStr] [$deleteLogStr] [$deleteUploadStr] "
+			 . "<strong>[$deleteAllStr]</strong>";
+		echo "</p>";
 	}
 }
 

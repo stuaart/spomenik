@@ -36,7 +36,6 @@ echo "Config::\$RECORD_SILENCE_TIMEOUT = " .
 echo "Config::\$INPUT_TIMEOUT = " . Config::$INPUT_TIMEOUT . ";\n";
 echo "Config::\$MAX_REPEATS = " . Config::$MAX_REPEATS . ";\n";
 
-
 ?>
 
 
@@ -97,10 +96,12 @@ function opt($opts, $choices, $handler, $timeoutHandler)
 
 function hangupHandler($event)
 {
-	global $callID;
+	global $callID, $station;
 	_log("User hungup");
 	logger($callID, "hangupHandler,event=" . $event->value);
-	// Exit to preserve state
+	// Exit to preserve state unless they hungup whilst recording
+	if ($station == Station::POST_VISIT)
+		finishSession();
 	exit;
 }
 
@@ -172,6 +173,7 @@ function blockRec($num, $langSet=true)
 		   "maxTime" => Config::$MAX_RECORD_TIME,
 		   "terminator" => "#",
 		   "silenceTimeout" => Config::$RECORD_SILENCE_TIMEOUT,
+		   "onHangup" => "hangupHandler",
 		   "recordFormat" => "audio/mp3",
 		   "recordMethod" => "POST",
 		   "recordURI" => Sys::RECORD_URL . "?id=$callID")
@@ -504,6 +506,16 @@ function station2p2()
 		 	 "stationHandler2P3_1", "stationHandler2P3Timeout");
 }
 
+function finishSession()
+{
+	global $callID;
+	//	sms("sms1");
+	logger($callID, "finishSession,station=" . Station::POST_VISIT);
+	_log("Waiting for " . Config::$POST_VISIT_WAIT . " seconds before sms2");
+	wait(Config::$POST_VISIT_WAIT * 1000);
+	sms("sms2");
+}
+
 switch ($station)
 {
 	case Station::STATION1:
@@ -572,12 +584,7 @@ switch ($station)
 
 if ($station == Station::POST_VISIT)
 {
-	sms("sms1");
-	logger($callID, "station=" . Station::POST_VISIT);
-	_log("Waiting for " . Config::$POST_VISIT_WAIT . " seconds before sms2");
-	wait(Config::$POST_VISIT_WAIT * 1000);
-
-	sms("sms2");
+	finishSession();
 }
 else
 {
