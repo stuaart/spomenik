@@ -55,8 +55,8 @@ class Routing
 	const UK_INT_PREFIX = "+44";
 	const SLO_INT_PREFIX = "+386";
 	// Local prefixes only work for mobiles
-	const UK_LOCAL_PREFIX = "07";
-	const SLO_LOCAL_PREFIX = "01";
+	const UK_LOCAL_PREFIX = "077,078,079,075,074";
+	const SLO_LOCAL_PREFIX = "030,040,031,041,051,071,070,064";
 }
 
 

@@ -52,21 +52,16 @@ $station = Station::NOT_SET;
 // UK + SLO only
 function parseNumber($num)
 {
-	$prefix = "";
-	switch (substr($num, 0, 2))
-	{
-		case Routing::UK_LOCAL_PREFIX:
-		{
-			$prefix = Routing::UK_INT_PREFIX;
-			break;
-		}
-		case Routing::SLO_LOCAL_PREFIX:
-		{
-			$prefix = Routing::SLO_INT_PREFIX;
-			break;
-		}
-		default: break;
-	}
+	$prefixes = array();
+
+	$sloPrefixes = explode(",", Routing::SLO_LOCAL_PREFIX);
+	foreach ($sloPrefixes as $p)
+		$prefixes[$p] = Routing::SLO_INT_PREFIX;
+	$ukPrefixes = explode(",", Routing::UK_LOCAL_PREFIX);
+	foreach ($ukPrefixes as $p)
+		$prefixes[$p] = Routing::UK_INT_PREFIX;
+	$prefix = $prefixes[substr($num, 0, 3)];
+
 	if (substr($num, 0, 1) == 0)
 		$out = substr($num, 1, strlen($num));
 
