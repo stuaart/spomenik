@@ -21,7 +21,7 @@ if (!mysql_select_db($database))
 }
 
 $res = mysql_query("SELECT unix_timestamp(timestamp) FROM log 
-					WHERE entry LIKE 'blockSay,num=5%' 
+					WHERE entry LIKE 'blockSay,num=18%' 
 					ORDER BY timestamp DESC");
 
 $num = 0;
