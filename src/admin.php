@@ -24,7 +24,7 @@
 		var diff = (now.getTime() - theDate.getTime()) / 1000;
 		var hours = Math.floor((diff / 60 / 60));
 		var days = Math.floor(hours / 24);
-		var weeks = Math.floor(weeks / 7);
+		var weeks = Math.floor(days / 7);
 		var dateString = "just now";
 		if (hours > 0 && hours < 24)
 		{
