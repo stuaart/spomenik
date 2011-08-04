@@ -4,7 +4,7 @@ class MySQL
 	const USER = "root";
 	const HOST = "localhost";
 	const DBNAME = "spomenik";
-	const PASSWD_FILE = "/home/stuart/mysql-passwd.txt";
+	const PASSWD_FILE = "/path/to/mysql-passwd.txt";
 }
 
 function readConfig()

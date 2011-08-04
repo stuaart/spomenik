@@ -1,0 +1,75 @@
+vim: tw=80
+
+Licence
+===
+All code licensed under the AGPLv3, except 3rd party libraries which are 
+distributed under their individual licences.
+
+
+Pervasive Monuments project (part of Horizon Digital Economy Research)
+===
+This is the Spomenik interactive audioguide system.
+
+
+Installation and setup instructions
+===
+1) Create a MySQL database for the system, e.g., using PHPMyAdmin or similar
+tool. For the purposes of these instructions this database name is `spomenik'.
+
+2) To configure you will need to edit two files: src/header.php and 
+src/header_shared.php. For src/header.php, change the MySQL details as per what
+was set up in (2), and create a file somewhere that holds the MySQL password (do
+not put this in your web path):
+
+class MySQL
+{
+    const USER = "root";
+    const HOST = "localhost";
+    const DBNAME = "spomenik";
+    const PASSWD_FILE = "/home/foo/mysql-passwd.txt";
+}
+
+For src/header_shared.php there are a bunch of URLs to set that point to your
+installation path, and a few file paths:
+
+class Sys
+{
+	const AUDIO_BASE_URL = 
+		"http://server.org/spomenik/audio/";
+	...
+	
+	const TROPO_KEY_FILE = "/home/foo/tropo_key.txt";
+	const UPLOAD_DIR = "/var/www/spomenik/uploads/";
+	const AUDIO_DIR = "/var/www/spomenik/audio/";
+}
+
+3) Modify install.sh to point to the installation directory, e.g.,
+
+	PATH=/var/www/spomenik/
+
+In these instructions we have assumed that this is the URL
+
+	http://server.org/spomenik/
+
+Run the install.sh script to copy the files to PATH.
+
+4) Create a new Application with your Tropo account. Set the URL for both voice
+calls and messaging to point to the URL where main.php now resides, e.g., 
+
+	http://server.org/spomenik/main.php
+
+Copy the Outbound Token for Messaging by clicking the link further down the page
+for the Application (this will look like the following
+
+	Your Token:
+		03aadf4e835c...
+). Paste the token into the file we set as the key, e.g., 
+
+	/home/foo/tropo_key.txt
+
+Obviously you will need to add a new phone number for the Tropo Application, as
+well as switch to production mode when you are ready.
+
+
+Stuart Reeves
+stuart@tropic.org.uk

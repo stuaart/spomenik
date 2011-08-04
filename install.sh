@@ -1,3 +1,5 @@
 #!/bin/bash
 
-cp -R swf js src/*.php ~/public_html/spomenik/
+PATH=/path/to/webroot
+
+cp -R swf js src/*.php $PATH

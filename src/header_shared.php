@@ -33,21 +33,21 @@ class Config
 class Sys
 {
 	const AUDIO_BASE_URL = 
-		"http://horizab1.miniserver.com/~stuart/spomenik/audio/";
+		"http://url.to/audio/";
 	const SMS_BASE_URL = 
 		"http://api.tropo.com/1.0/sessions?action=create&token=";
 	const CALL_TRACK_URL = 
-		"http://horizab1.miniserver.com/~stuart/spomenik/tracker.php";
+		"http://url.to/tracker.php";
 	const RECORD_URL = 
-		"http://horizab1.miniserver.com/~stuart/spomenik/record.php";
+		"http://url.to/record.php";
 	const SYSTEM_LOG_URL = 
-		"http://horizab1.miniserver.com/~stuart/spomenik/logger.php";
+		"http://url.to/logger.php";
 	const UPLOAD_URL =
-		"http://horizab1.miniserver.com/~stuart/spomenik/uploads/";
+		"http://url.to/uploads/";
 	
-	const TROPO_KEY_FILE = "/home/stuart/tropo_key.txt";
-	const UPLOAD_DIR = "/home/stuart/public_html/spomenik/uploads/";
-	const AUDIO_DIR = "/home/stuart/public_html/spomenik/audio/";
+	const TROPO_KEY_FILE = "/path/to/tropo_key.txt";
+	const UPLOAD_DIR = "/path/to/uploads/";
+	const AUDIO_DIR = "/path/to/audio/";
 }
 
 class Routing
