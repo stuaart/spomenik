@@ -4,20 +4,10 @@
 
 	<script type="text/javascript" src="data.php"></script>
 	<script type="text/javascript" src="js/jquery-1.6.1.min.js"></script>
-	<script type="text/javascript" src="js/jquery.jmp3.js?1">
-	</script>
+	<script type="text/javascript" src="js/jquery.jmp3.js?1"></script>
 	<script type="text/javascript">
 	$(document).ready(function(){
-		// default options
-		$(".mp3").jmp3({
-			showfilename: "false",
-			backcolor: "aaaaaa",
-			forecolor: "cccccc",
-			width: 150,
-			showdownload: "false"
-		}); 
-		// custom options
-		$("#player").jmp3({
+		$(".player").jmp3({
 			showfilename: "false",
 			backcolor: "aaaaaa",
 			forecolor: "cccccc",
@@ -25,6 +15,43 @@
 			showdownload: "false"
 		});
 	});
+	
+	function readableTimestamp(ts)
+	{
+		var theDate = new Date();
+		var now = new Date();
+		theDate.setTime(ts * 1000);
+		var diff = (now.getTime() - theDate.getTime()) / 1000;
+		var hours = Math.floor((diff / 60 / 60));
+		var days = Math.floor(hours / 24);
+		var weeks = Math.floor(days / 7);
+		var dateString = "just now";
+		if (hours > 0 && hours < 24)
+		{
+			dateString = hours;
+			if (hours == 1)
+				dateString += " hour ago";
+			else
+				dateString += " hours ago";
+		}
+		else if (days > 0 && days < 7)
+		{
+			dateString = days;
+			if (days == 1)
+				dateString += " day ago";
+			else
+				dateString += " days ago";
+		}
+		else if (weeks > 0 && weeks < 52)
+		{
+			dateString = weeks;
+			if (weeks == 1)
+				dateString += " week ago";
+			else
+				dateString += " weeks ago";
+		}
+		return dateString;
+	}
 	</script>
 
 </head>
@@ -43,18 +70,15 @@ Last visit was at: <span id="last_visit"></span>.
 <script type="text/javascript">
 	var dateString = "&lt;no last visit&gt;";
 	if (data.visit_stats.last_visit > 0)
-	{
-		var newDate = new Date();
-		newDate.setTime(data.visit_stats.last_visit * 1000);
-		dateString = newDate.toUTCString();
-	}
+		dateString = readableTimestamp(data.visit_stats.last_visit);
 	document.getElementById("last_visit").innerHTML = dateString;
 	document.getElementById("num_visits").innerHTML 
 		= data.visit_stats.num_visits;
 	for (var i = 0; i < data.recordings.length; ++i)
 	{
 		document.getElementById("recording_set").innerHTML += 
-			"<span id='player'>" + data.recordings[i].url + "</span>";
+			"<span class='player'>" + data.recordings[i].url + "</span>" 
+			+ readableTimestamp(data.recordings[i].timestamp);
 	}
 
 </script>
@@ -94,18 +118,23 @@ Maximum number of times someone can continually not press buttons when requested
 <p>
 <h3>Set user state</h3>
 <form action="tracker.php" method="POST">
-	ID: <input type="text" name="callID">
-	Lang: <input type="text" name="lang" value="1">
-	Station: <select name="station">
+	Phone number: <input type="text" name="callID">
 <?php
-include_once("header.php");
+include_once("header_shared.php");
+
+echo "Language: <select name='lang'>";
+echo "<option value='" . Lang::SLO . "'>Slovenian</option>";
+echo "<option value='" . Lang::ENG . "'>English</option>";
+echo "</select>";
+
+echo "Station: <select name='station'>";
 echo "<option value='" . Station::NOT_SET . "'>Not set</option>";
 echo "<option value='" . Station::STATION1 . "'>Station 1</option>";
 echo "<option value='" . Station::STATION2 . "'>Station 2</option>";
 echo "<option value='" . Station::STATION2_PART3 . "'>Station 2, part 3</option>";
 echo "<option value='" . Station::POST_VISIT . "'>Post visit</option>";
+echo "</select>";
 ?>
-	</select>
 
 	<input type="submit" value="Submit">
 </form>
@@ -113,6 +142,7 @@ echo "<option value='" . Station::POST_VISIT . "'>Post visit</option>";
 <p>
 <h3>Upload audio block files</h3>
 <form action="upload.php" enctype="multipart/form-data" method="POST">
+Block to replace: 
 <select name="block">
 <?php
 
@@ -136,7 +166,7 @@ if ($fh = opendir(Sys::AUDIO_DIR))
 
 ?>
 	</select>
-	File: <input type="file" name="filename">
+	Replace with file: <input type="file" name="filename">
 	<input type="submit" value="Upload">
 </form>
 </p>
@@ -162,6 +192,56 @@ if (!mysql_select_db($database))
 	exit;
 }
 
+if (isset($_GET['delete_all']))
+{
+	$user = mysql_real_escape_string($_GET['delete_all']);
+	mysql_query("DELETE FROM log WHERE id='$user'");
+	$res = mysql_query("SELECT recording FROM user WHERE id='$user'");
+	if (mysql_num_rows($res) > 0)
+	{
+		$row = mysql_fetch_row($res);
+		if ($row[0]!= "");
+			unlink($row[0]);
+	}
+	mysql_query("DELETE FROM user WHERE id='$user'");
+
+	unset($_GET['delete_all']);
+
+	echo "<script type='text/javascript'>window.location='admin.php'</script>";
+}
+
+if (isset($_GET['delete_user']))
+{
+	$user = mysql_real_escape_string($_GET['delete_user']);
+	mysql_query("DELETE FROM user WHERE id='$user'");
+	unset($_GET['delete']);
+	echo "<script type='text/javascript'>window.location='admin.php'</script>";
+}
+
+if (isset($_GET['delete_log']))
+{
+	$user = mysql_real_escape_string($_GET['delete_log']);
+	mysql_query("DELETE FROM log WHERE id='$user'");
+	unset($_GET['delete_log']);
+	echo "<script type='text/javascript'>window.location='admin.php'</script>";
+}
+
+if (isset($_GET['delete_upload']))
+{
+	$user = mysql_real_escape_string($_GET['delete_upload']);
+	$res = mysql_query("SELECT recording FROM user WHERE id='$user'");
+	if (mysql_num_rows($res) > 0)
+	{
+		$row = mysql_fetch_row($res);
+		if ($row[0]!= "");
+			unlink($row[0]);
+	}
+	mysql_query("UPDATE user SET recording = NULL WHERE id=$user");
+	unset($_GET['delete_upload']);
+	echo "<script type='text/javascript'>window.location='admin.php'</script>";
+}
+
+
 echo "<p><h3>User list</h3><pre>";
 
 $res = mysql_query("SELECT * FROM user");
@@ -174,7 +254,7 @@ if ($res && mysql_num_rows($res) > 0)
 		{
 			case Lang::ENG: $lang = "English"; break;
 			case Lang::SLO: $lang = "Slovenian"; break;
-			default: $lang = "Not set"; break;
+			default: $lang = "not set"; break;
 		}
 		$station = "";
 		switch ($row['station'])
@@ -183,19 +263,32 @@ if ($res && mysql_num_rows($res) > 0)
 			case Station::STATION2: $station = "Station 2"; break;
 			case Station::STATION2_PART3: $station = "Station 2, part 3"; break;
 			case Station::POST_VISIT: $station = "Post visit"; break;
-			default: $station = "Not set"; break;
+			case Station::NOT_SET: $station = "not set"; break;
+			default: $station = "error, undefined"; break;
 		}
-		
-		$recordingStr = "None";
+	
+		$deleteAllStr = "<a href='?delete_all=" . $row['id'] . 
+						 "'>delete all</a>";
+		$deleteUserStr = "<a href='?delete_user=" . $row['id'] . 
+						 "'>delete user</a>";
+		$deleteLogStr = "<a href='?delete_log=" . $row['id'] . 
+						"'>delete logs</a>";
+		$deleteUploadStr = "<a href='?delete_upload=" . $row['id'] .
+						   "'>delete recording</a>";
+
+		$recordingStr = "";
 		$recording = substr(strrchr($row['recording'], "/"), 1);
 		if (strlen($recording) > 0)
-		{
-			$recordingStr = "recording=$recording "
-							. "<span id='player'>uploads/$recording</span>";
-		}
+			$recordingStr = "Recording file: $recording";
 
-		echo "id=<a href='log.php?id=" . $row['id'] . "'>" . $row['id']
-			 . "</a>, station=$station, lang=$lang, $recordingStr\n";
+		echo "<p>";
+		echo "<strong>Phone number: <a href='log.php?id=" . $row['id'] . "'>" 
+			  . $row['id'] . "</a></strong><br/>";
+		echo "Station: <em>$station</em>. Language: <em>$lang</em>. " 
+			 . "$recordingStr<br/>";
+		echo "ACTIONS: [$deleteUserStr] [$deleteLogStr] [$deleteUploadStr] "
+			 . "<strong>[$deleteAllStr]</strong>";
+		echo "</p>";
 	}
 }
 

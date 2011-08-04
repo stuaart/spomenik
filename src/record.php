@@ -47,7 +47,8 @@ if (file_exists(Sys::UPLOAD_DIR) && is_dir(Sys::UPLOAD_DIR))
 //			echo "File is valid, and was successfully uploaded, file=$file.\n";
 			$res = mysql_query("SELECT * FROM user WHERE id = '$id'");
 			$row = mysql_fetch_assoc($res);
-			if (mysql_query("UPDATE user SET recording = '$file' 
+			if (mysql_query("UPDATE user SET recording = '$file',
+											 recording_timestamp = NOW()
 							 WHERE id = '$id'"))
 			{
 				echo "File successfully added as recording";

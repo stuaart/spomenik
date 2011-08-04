@@ -21,7 +21,7 @@ if (!mysql_select_db($database))
 }
 
 $res = mysql_query("SELECT unix_timestamp(timestamp) FROM log 
-					WHERE entry LIKE 'blockSay,num=5%' 
+					WHERE entry LIKE 'blockSay,num=18%' 
 					ORDER BY timestamp DESC");
 
 $num = 0;
@@ -41,7 +41,9 @@ echo "var data = { visit_stats : { num_visits: $num, last_visit: $ts }, ";
 
 echo " recordings : [";
 
-$res = mysql_query("SELECT id,recording FROM user");
+$res = mysql_query("SELECT recording,unix_timestamp(recording_timestamp) 
+						AS recording_timestamp
+					FROM user WHERE recording IS NOT NULL");
 if ($res && mysql_num_rows($res) > 0)
 {
 	$numRows = mysql_num_rows($res);
@@ -49,7 +51,8 @@ if ($res && mysql_num_rows($res) > 0)
 	{
 		$recordingURL = Sys::UPLOAD_URL . 
 						substr(strrchr($row['recording'], "/"), 1);
-		echo "{ id: '" . $row['id'] . "', url: '$recordingURL' }";
+		echo "{ url: '$recordingURL', timestamp: '" 
+				. $row['recording_timestamp'] . "' }";
 		if (--$numRows > 0)
 			echo ",";
 	}

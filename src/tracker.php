@@ -12,7 +12,7 @@ $database = MySQL::DBNAME;
 // between development and production mode, in which curl POSTs no longer 
 // contain any data. Thus GETs are used as a workaround.
 
-if (strlen($_POST['callID']) == 0 && strlen($_GET['callID']) == 0)
+if (strlen($_GET['callID']) == 0 && strlen($_POST['callID']) == 0)
 {
 	echo "ID variable is not set, id=" . $_POST['callID'] . 
 		 ", _POST=" . $_POST['callID'] . ", _callID=" . $_GET['callID'];
@@ -58,40 +58,40 @@ if (!$res || ($res && mysql_num_rows($res) == 0))
 	{
 		mysql_query("CREATE TABLE user (id VARCHAR(50) NOT NULL, 
 										station INT(2), lang INT(2), 
-										recording VARCHAR(255))"
+										recording VARCHAR(255),
+										recording_timestamp DATETIME)"
 		);
 	}
 
 	mysql_query("INSERT INTO user VALUES('" . $id . "', " . Station::NOT_SET . 
-										 ", " . Lang::NOT_SET . ", NULL)");
+										 ", " . Lang::NOT_SET . ", NULL, 
+										 NULL)");
 }
-else
+
+$row = mysql_fetch_assoc(mysql_query("SELECT * FROM user WHERE id = '$id'"));
+if (isset($lang))
 {
-	$row = mysql_fetch_assoc($res);
-	if (isset($lang))
-	{
-		if (mysql_query("UPDATE user SET lang = '$lang' WHERE id = '$id'"))
-			$response = $lang;
-	}
-	else 
-		$response = $row['lang'];
-	if (isset($station))
-	{
-		if (mysql_query("UPDATE user SET station = '$station' 
-						 WHERE id = '$id'"))
-		{
-			if ($response != "")
-				$response .= ",";
-			$response .= $station;
-		}
-	}
-	else
+	if (mysql_query("UPDATE user SET lang = '$lang' WHERE id = '$id'"))
+		$response = $lang;
+}
+else 
+	$response = $row['lang'];
+
+if (isset($station))
+{
+	if (mysql_query("UPDATE user SET station = '$station' 
+					 WHERE id = '$id'"))
 	{
 		if ($response != "")
 			$response .= ",";
-		$response .= $row['station'];
+		$response .= $station;
 	}
-
+}
+else
+{
+	if ($response != "")
+		$response .= ",";
+	$response .= $row['station'];
 }
 
 mysql_close();

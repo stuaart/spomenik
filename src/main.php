@@ -36,36 +36,31 @@ echo "Config::\$RECORD_SILENCE_TIMEOUT = " .
 echo "Config::\$INPUT_TIMEOUT = " . Config::$INPUT_TIMEOUT . ";\n";
 echo "Config::\$MAX_REPEATS = " . Config::$MAX_REPEATS . ";\n";
 
-
 ?>
 
 
 define ("SMS_URL", Sys::SMS_BASE_URL . $smsKey);
 
 // Globals
-$lang = Lang::SLO; // Language is always Slovenian // Lang::NOT_SET;
-$station = Station::NOT_SET;
 $callID = $currentCall->callerID;
 $repeats = 0;
+$lang = Lang::NOT_SET;
+$station = Station::NOT_SET;
+
 
 // UK + SLO only
 function parseNumber($num)
 {
-	$prefix = "";
-	switch (substr($num, 0, 2))
-	{
-		case Routing::UK_LOCAL_PREFIX:
-		{
-			$prefix = Routing::UK_INT_PREFIX;
-			break;
-		}
-		case Routing::SLO_LOCAL_PREFIX:
-		{
-			$prefix = Routing::SLO_INT_PREFIX;
-			break;
-		}
-		default: break;
-	}
+	$prefixes = array();
+
+	$sloPrefixes = explode(",", Routing::SLO_LOCAL_PREFIX);
+	foreach ($sloPrefixes as $p)
+		$prefixes[$p] = Routing::SLO_INT_PREFIX;
+	$ukPrefixes = explode(",", Routing::UK_LOCAL_PREFIX);
+	foreach ($ukPrefixes as $p)
+		$prefixes[$p] = Routing::UK_INT_PREFIX;
+	$prefix = $prefixes[substr($num, 0, 3)];
+
 	if (substr($num, 0, 1) == 0)
 		$out = substr($num, 1, strlen($num));
 
@@ -101,10 +96,12 @@ function opt($opts, $choices, $handler, $timeoutHandler)
 
 function hangupHandler($event)
 {
-	global $callID;
+	global $callID, $station;
 	_log("User hungup");
 	logger($callID, "hangupHandler,event=" . $event->value);
-	// Exit to preserve state
+	// Exit to preserve state unless they hungup whilst recording
+	if ($station == Station::POST_VISIT)
+		finishSession();
 	exit;
 }
 
@@ -118,16 +115,20 @@ function getBlockFile($num, $langSet)
 		switch ($lang)
 		{
 			case Lang::ENG: 
+			{
+				$blockStr .= ("-" . $lang . ".mp3");
+				break;
+			}
 			case Lang::SLO: 
 			{ 
-				$blockStr .= ("-" . $lang); 
+				$blockStr .= ("-" . $lang . ".ulaw"); 
 				break; 
 			}
 			default: { break; }
 		}
 	}
 
-	$file = Sys::AUDIO_BASE_URL . "/" . $blockStr . ".mp3";
+	$file = Sys::AUDIO_BASE_URL . "/" . $blockStr;
 
 	return $file;
 }
@@ -172,6 +173,7 @@ function blockRec($num, $langSet=true)
 		   "maxTime" => Config::$MAX_RECORD_TIME,
 		   "terminator" => "#",
 		   "silenceTimeout" => Config::$RECORD_SILENCE_TIMEOUT,
+		   "onHangup" => "hangupHandler",
 		   "recordFormat" => "audio/mp3",
 		   "recordMethod" => "POST",
 		   "recordURI" => Sys::RECORD_URL . "?id=$callID")
@@ -471,6 +473,9 @@ _log("Wait for " . Config::$ANSWER_WAIT . " seconds");
 wait(Config::$ANSWER_WAIT * 1000);
 
 trackCall();
+// Set the default non-administrator language
+if ($lang != Lang::ENG)
+	$lang = Lang::SLO;
 
 if ($station == Station::NOT_SET)
 {
@@ -499,6 +504,16 @@ function station2p2()
 	blockSay(12);
 	blockAsk(13, "" . Station::STATION2_PART3 . "", 
 		 	 "stationHandler2P3_1", "stationHandler2P3Timeout");
+}
+
+function finishSession()
+{
+	global $callID;
+	//	sms("sms1");
+	logger($callID, "finishSession,station=" . Station::POST_VISIT);
+	_log("Waiting for " . Config::$POST_VISIT_WAIT . " seconds before sms2");
+	wait(Config::$POST_VISIT_WAIT * 1000);
+	sms("sms2");
 }
 
 switch ($station)
@@ -569,12 +584,7 @@ switch ($station)
 
 if ($station == Station::POST_VISIT)
 {
-	sms("sms1");
-	logger($callID, "station=" . Station::POST_VISIT);
-	_log("Waiting for " . Config::$POST_VISIT_WAIT . " seconds before sms2");
-	wait(Config::$POST_VISIT_WAIT * 1000);
-
-	sms("sms2");
+	finishSession();
 }
 else
 {
